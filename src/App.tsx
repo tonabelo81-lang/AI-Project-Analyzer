@@ -126,6 +126,50 @@ export default function App() {
   const [modelProvider, setModelProvider] = useState<"cloud_gemini" | "local_ollama" | "local_ast">("cloud_gemini");
   const [ollamaModel, setOllamaModel] = useState<string>("llama3");
   const [ollamaUrl, setOllamaUrl] = useState<string>("http://localhost:11434");
+  const [localOllamaModels, setLocalOllamaModels] = useState<string[]>([]);
+  const [fetchingOllama, setFetchingOllama] = useState<boolean>(false);
+  const [ollamaError, setOllamaError] = useState<string | null>(null);
+
+  const fetchLocalOllamaModels = async (urlToUse?: string) => {
+    const url = urlToUse || ollamaUrl;
+    setFetchingOllama(true);
+    setOllamaError(null);
+    try {
+      const cleanUrl = url.replace(/\/$/, "");
+      const res = await fetch(`${cleanUrl}/api/tags`);
+      if (res.ok) {
+        const json = await res.json();
+        if (json && Array.isArray(json.models)) {
+          const names = json.models.map((m: any) => m.name);
+          setLocalOllamaModels(names);
+          if (names.length > 0) {
+            if (!names.includes(ollamaModel)) {
+              setOllamaModel(names[0]);
+            }
+          }
+          setOllamaError("success");
+        } else {
+          setLocalOllamaModels([]);
+          setOllamaError("empty");
+        }
+      } else {
+        setLocalOllamaModels([]);
+        setOllamaError("failed");
+      }
+    } catch (err) {
+      console.warn("Failed to fetch local Ollama models:", err);
+      setLocalOllamaModels([]);
+      setOllamaError("failed");
+    } finally {
+      setFetchingOllama(false);
+    }
+  };
+
+  useEffect(() => {
+    if (modelProvider === "local_ollama") {
+      fetchLocalOllamaModels();
+    }
+  }, [modelProvider]);
 
   useEffect(() => {
     fetchScanData();
@@ -1681,24 +1725,74 @@ jobs:
                 >
                   <div className="grid grid-cols-2 gap-2">
                     <div className="space-y-1">
-                      <span className="text-[8px] font-bold text-slate-500 uppercase tracking-wider block">{t.ollamaModelLabel}</span>
-                      <input
-                        type="text"
-                        value={ollamaModel}
-                        onChange={(e) => setOllamaModel(e.target.value)}
-                        className="w-full bg-slate-900/80 border border-slate-850 rounded px-1.5 py-0.5 text-[10px] text-slate-300 focus:outline-none focus:border-indigo-500 font-mono"
-                      />
+                      <div className="flex items-center justify-between">
+                        <span className="text-[8px] font-bold text-slate-500 uppercase tracking-wider block">{t.ollamaModelLabel}</span>
+                        <button
+                          onClick={() => fetchLocalOllamaModels()}
+                          className="text-[8px] text-indigo-400 hover:text-indigo-300 font-bold uppercase flex items-center gap-0.5"
+                          disabled={fetchingOllama}
+                          title={t.detectModelsBtn}
+                        >
+                          <RefreshCw className={`w-2.5 h-2.5 ${fetchingOllama ? "animate-spin" : ""}`} />
+                        </button>
+                      </div>
+                      {localOllamaModels.length > 0 ? (
+                        <select
+                          value={ollamaModel}
+                          onChange={(e) => setOllamaModel(e.target.value)}
+                          className="w-full bg-slate-900 border border-slate-800 rounded px-1 py-0.5 text-[10px] text-slate-300 focus:outline-none focus:border-indigo-500 font-mono"
+                        >
+                          {localOllamaModels.map(m => (
+                            <option key={m} value={m} className="bg-[#0b0f1a] text-slate-300">
+                              {m}
+                            </option>
+                          ))}
+                        </select>
+                      ) : (
+                        <input
+                          type="text"
+                          value={ollamaModel}
+                          onChange={(e) => setOllamaModel(e.target.value)}
+                          className="w-full bg-slate-900/80 border border-slate-850 rounded px-1.5 py-0.5 text-[10px] text-slate-300 focus:outline-none focus:border-indigo-500 font-mono"
+                          placeholder="e.g. llama3"
+                        />
+                      )}
                     </div>
                     <div className="space-y-1">
                       <span className="text-[8px] font-bold text-slate-500 uppercase tracking-wider block">{t.ollamaUrlLabel}</span>
                       <input
                         type="text"
                         value={ollamaUrl}
-                        onChange={(e) => setOllamaUrl(e.target.value)}
+                        onChange={(e) => {
+                          setOllamaUrl(e.target.value);
+                        }}
+                        onBlur={(e) => {
+                          fetchLocalOllamaModels(e.target.value);
+                        }}
                         className="w-full bg-slate-900/80 border border-slate-850 rounded px-1.5 py-0.5 text-[10px] text-slate-300 focus:outline-none focus:border-indigo-500 font-mono"
                       />
                     </div>
                   </div>
+
+                  {ollamaError && (
+                    <div className="text-[8px] mt-1">
+                      {ollamaError === "success" && (
+                        <span className="text-emerald-400 font-semibold">
+                          {t.detectModelsSuccess.replace("{count}", localOllamaModels.length.toString())}
+                        </span>
+                      )}
+                      {ollamaError === "failed" && (
+                        <span className="text-rose-400 font-semibold leading-tight block">
+                          {t.detectModelsFailed}
+                        </span>
+                      )}
+                      {ollamaError === "empty" && (
+                        <span className="text-amber-400 font-semibold leading-tight block">
+                          Ollama connected, but 0 models.
+                        </span>
+                      )}
+                    </div>
+                  )}
                 </motion.div>
               )}
             </div>
@@ -2086,24 +2180,74 @@ jobs:
                   >
                     <div className="grid grid-cols-2 gap-2">
                       <div className="space-y-1">
-                        <span className="text-[8px] font-bold text-slate-500 uppercase tracking-wider block">{t.ollamaModelLabel}</span>
-                        <input
-                          type="text"
-                          value={ollamaModel}
-                          onChange={(e) => setOllamaModel(e.target.value)}
-                          className="w-full bg-slate-900/80 border border-slate-850 rounded px-1.5 py-0.5 text-[10px] text-slate-300 focus:outline-none focus:border-indigo-500 font-mono"
-                        />
+                        <div className="flex items-center justify-between">
+                          <span className="text-[8px] font-bold text-slate-500 uppercase tracking-wider block">{t.ollamaModelLabel}</span>
+                          <button
+                            onClick={() => fetchLocalOllamaModels()}
+                            className="text-[8px] text-indigo-400 hover:text-indigo-300 font-bold uppercase flex items-center gap-0.5"
+                            disabled={fetchingOllama}
+                            title={t.detectModelsBtn}
+                          >
+                            <RefreshCw className={`w-2.5 h-2.5 ${fetchingOllama ? "animate-spin" : ""}`} />
+                          </button>
+                        </div>
+                        {localOllamaModels.length > 0 ? (
+                          <select
+                            value={ollamaModel}
+                            onChange={(e) => setOllamaModel(e.target.value)}
+                            className="w-full bg-slate-900 border border-slate-800 rounded px-1 py-0.5 text-[10px] text-slate-300 focus:outline-none focus:border-indigo-500 font-mono"
+                          >
+                            {localOllamaModels.map(m => (
+                              <option key={m} value={m} className="bg-[#0b0f1a] text-slate-300">
+                                {m}
+                              </option>
+                            ))}
+                          </select>
+                        ) : (
+                          <input
+                            type="text"
+                            value={ollamaModel}
+                            onChange={(e) => setOllamaModel(e.target.value)}
+                            className="w-full bg-slate-900/80 border border-slate-850 rounded px-1.5 py-0.5 text-[10px] text-slate-300 focus:outline-none focus:border-indigo-500 font-mono"
+                            placeholder="e.g. llama3"
+                          />
+                        )}
                       </div>
                       <div className="space-y-1">
                         <span className="text-[8px] font-bold text-slate-500 uppercase tracking-wider block">{t.ollamaUrlLabel}</span>
                         <input
                           type="text"
                           value={ollamaUrl}
-                          onChange={(e) => setOllamaUrl(e.target.value)}
+                          onChange={(e) => {
+                            setOllamaUrl(e.target.value);
+                          }}
+                          onBlur={(e) => {
+                            fetchLocalOllamaModels(e.target.value);
+                          }}
                           className="w-full bg-slate-900/80 border border-slate-850 rounded px-1.5 py-0.5 text-[10px] text-slate-300 focus:outline-none focus:border-indigo-500 font-mono"
                         />
                       </div>
                     </div>
+
+                    {ollamaError && (
+                      <div className="text-[8px] mt-1">
+                        {ollamaError === "success" && (
+                          <span className="text-emerald-400 font-semibold">
+                            {t.detectModelsSuccess.replace("{count}", localOllamaModels.length.toString())}
+                          </span>
+                        )}
+                        {ollamaError === "failed" && (
+                          <span className="text-rose-400 font-semibold leading-tight block">
+                            {t.detectModelsFailed}
+                          </span>
+                        )}
+                        {ollamaError === "empty" && (
+                          <span className="text-amber-400 font-semibold leading-tight block">
+                            Ollama connected, but 0 models.
+                          </span>
+                        )}
+                      </div>
+                    )}
                   </motion.div>
                 )}
               </div>

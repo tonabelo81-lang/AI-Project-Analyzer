@@ -137,6 +137,11 @@ export interface Translations {
   localAstOption: string;
   ollamaModelLabel: string;
   ollamaUrlLabel: string;
+  detectModelsBtn: string;
+  detectModelsBtnLoading: string;
+  detectModelsSuccess: string;
+  detectModelsFailed: string;
+  ollamaDropdownDefault: string;
 
   serverFolderBrowser: string;
   serverFolderDesc: string;
@@ -291,6 +296,11 @@ export const translations: Record<Language, Translations> = {
     localAstOption: "Local AST Analyzer",
     ollamaModelLabel: "Ollama Model",
     ollamaUrlLabel: "Ollama API URL",
+    detectModelsBtn: "Detect Models",
+    detectModelsBtnLoading: "Detecting...",
+    detectModelsSuccess: "Detected {count} models!",
+    detectModelsFailed: "Connection failed. Ensure Ollama is running with OLLAMA_ORIGINS=\"*\"",
+    ollamaDropdownDefault: "Type or select a model...",
 
     serverFolderBrowser: "Server Folder Browser",
     serverFolderDesc: "Select any server folder path to scan and inspect code structures.",
@@ -443,6 +453,11 @@ export const translations: Record<Language, Translations> = {
     localAstOption: "Penganalisis AST Lokal",
     ollamaModelLabel: "Model Ollama",
     ollamaUrlLabel: "URL API Ollama",
+    detectModelsBtn: "Deteksi Model",
+    detectModelsBtnLoading: "Mendeteksi...",
+    detectModelsSuccess: "Berhasil mendeteksi {count} model!",
+    detectModelsFailed: "Koneksi gagal. Pastikan Ollama berjalan dengan OLLAMA_ORIGINS=\"*\"",
+    ollamaDropdownDefault: "Ketik atau pilih model...",
 
     serverFolderBrowser: "Penjelajah Folder Server",
     serverFolderDesc: "Pilih jalur folder server mana saja untuk memindai dan memeriksa struktur kode.",

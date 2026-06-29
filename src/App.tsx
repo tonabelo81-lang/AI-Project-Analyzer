@@ -34,7 +34,9 @@ import {
   Plus,
   Menu,
   ZoomIn,
-  ZoomOut
+  ZoomOut,
+  Maximize2,
+  Minimize2
 } from "lucide-react";
 import Editor from "@monaco-editor/react";
 import {
@@ -129,6 +131,7 @@ export default function App() {
   const [localOllamaModels, setLocalOllamaModels] = useState<string[]>([]);
   const [fetchingOllama, setFetchingOllama] = useState<boolean>(false);
   const [ollamaError, setOllamaError] = useState<string | null>(null);
+  const [isChatFullScreen, setIsChatFullScreen] = useState<boolean>(false);
 
   const fetchLocalOllamaModels = async (urlToUse?: string) => {
     const url = urlToUse || ollamaUrl;
@@ -1673,9 +1676,18 @@ jobs:
                 <MessageSquare className="w-3.5 h-3.5 text-indigo-400" />
                 {t.aiAssistantTitle}
               </span>
-              <span className="text-[10px] bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 px-2 py-0.5 rounded-full font-mono font-bold">
-                {t.ragContext}
-              </span>
+              <div className="flex items-center gap-1.5">
+                <span className="text-[10px] bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 px-2 py-0.5 rounded-full font-mono font-bold">
+                  {t.ragContext}
+                </span>
+                <button
+                  onClick={() => setIsChatFullScreen(true)}
+                  className="p-1 rounded bg-slate-900 hover:bg-slate-850 border border-slate-800 text-slate-400 hover:text-white transition-colors cursor-pointer"
+                  title={t.toggleFullScreen}
+                >
+                  <Maximize2 className="w-3 h-3" />
+                </button>
+              </div>
             </div>
 
             {/* Model Provider Selector */}
@@ -2125,12 +2137,24 @@ jobs:
                   <MessageSquare className="w-4 h-4 text-indigo-400" />
                   <span className="text-xs font-bold text-white uppercase tracking-wider">AI Assistant</span>
                 </div>
-                <button
-                  onClick={() => setChatSidebarOpen(false)}
-                  className="p-1 text-slate-400 hover:text-white rounded-md bg-slate-900/60 border border-slate-800"
-                >
-                  <X className="w-4 h-4" />
-                </button>
+                <div className="flex items-center gap-1.5">
+                  <button
+                    onClick={() => {
+                      setChatSidebarOpen(false);
+                      setIsChatFullScreen(true);
+                    }}
+                    className="p-1 text-slate-400 hover:text-white rounded-md bg-slate-900/60 border border-slate-800"
+                    title={t.toggleFullScreen}
+                  >
+                    <Maximize2 className="w-3.5 h-3.5" />
+                  </button>
+                  <button
+                    onClick={() => setChatSidebarOpen(false)}
+                    className="p-1 text-slate-400 hover:text-white rounded-md bg-slate-900/60 border border-slate-800"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
+                </div>
               </div>
 
               {/* Model Provider Selector for Mobile */}
@@ -2298,6 +2322,244 @@ jobs:
               </div>
             </motion.aside>
           </div>
+        )}
+      </AnimatePresence>
+
+      {/* IMMERSIVE FULL SCREEN CHAT ASSISTANT */}
+      <AnimatePresence>
+        {isChatFullScreen && (
+          <motion.div
+            initial={{ opacity: 0, scale: 0.98 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.98 }}
+            transition={{ duration: 0.25, ease: "easeOut" }}
+            className="fixed inset-0 z-[99] bg-[#070b13] flex flex-col font-sans"
+          >
+            {/* Immersive Top Bar */}
+            <div className="border-b border-slate-900 bg-[#090d17] p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shrink-0">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-indigo-600/10 border border-indigo-500/20 flex items-center justify-center">
+                  <MessageSquare className="w-5 h-5 text-indigo-400" />
+                </div>
+                <div>
+                  <h2 className="text-sm font-bold text-slate-100 uppercase tracking-widest">{t.aiAssistantTitle}</h2>
+                  <p className="text-[10px] text-slate-500 font-mono">
+                    {language === "en" ? "Immersive Workspace Mode • Auto-Detect Active" : "Mode Ruang Kerja Imersif • Deteksi Otomatis Aktif"}
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex flex-wrap items-center gap-3">
+                {/* Selector inside immersive mode */}
+                <div className="bg-slate-900/60 border border-slate-800 rounded-lg p-1 flex items-center gap-1">
+                  <span className="text-[9px] font-bold text-slate-500 px-2 uppercase tracking-wider">{t.modelProviderLabel}:</span>
+                  <button
+                    onClick={() => setModelProvider("cloud_gemini")}
+                    className={`py-1 px-3 rounded text-[10px] font-semibold transition-all cursor-pointer ${
+                      modelProvider === "cloud_gemini"
+                        ? "bg-indigo-600 text-white shadow-lg"
+                        : "text-slate-400 hover:text-slate-200"
+                    }`}
+                  >
+                    Gemini
+                  </button>
+                  <button
+                    onClick={() => setModelProvider("local_ollama")}
+                    className={`py-1 px-3 rounded text-[10px] font-semibold transition-all cursor-pointer ${
+                      modelProvider === "local_ollama"
+                        ? "bg-indigo-600 text-white shadow-lg"
+                        : "text-slate-400 hover:text-slate-200"
+                    }`}
+                  >
+                    Ollama
+                  </button>
+                  <button
+                    onClick={() => setModelProvider("local_ast")}
+                    className={`py-1 px-3 rounded text-[10px] font-semibold transition-all cursor-pointer ${
+                      modelProvider === "local_ast"
+                        ? "bg-indigo-600 text-white shadow-lg"
+                        : "text-slate-400 hover:text-slate-200"
+                    }`}
+                  >
+                    AST
+                  </button>
+                </div>
+
+                {modelProvider === "local_ollama" && (
+                  <div className="flex items-center gap-2 bg-slate-900/60 border border-slate-800 rounded-lg px-2.5 py-1">
+                    <span className="text-[9px] font-bold text-slate-500 uppercase tracking-wider">{t.ollamaModelLabel}:</span>
+                    {localOllamaModels.length > 0 ? (
+                      <select
+                        value={ollamaModel}
+                        onChange={(e) => setOllamaModel(e.target.value)}
+                        className="bg-transparent text-[10px] text-slate-300 font-mono focus:outline-none cursor-pointer"
+                      >
+                        {localOllamaModels.map(m => (
+                          <option key={m} value={m} className="bg-[#0b0f1a] text-slate-300">
+                            {m}
+                          </option>
+                        ))}
+                      </select>
+                    ) : (
+                      <span className="text-[10px] text-slate-400 font-mono">{ollamaModel}</span>
+                    )}
+                  </div>
+                )}
+
+                <button
+                  onClick={() => setIsChatFullScreen(false)}
+                  className="bg-slate-900 hover:bg-slate-800 border border-slate-800 text-slate-300 hover:text-white py-1.5 px-3 rounded-lg transition-colors cursor-pointer flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider shrink-0"
+                >
+                  <Minimize2 className="w-3.5 h-3.5 text-rose-400" />
+                  <span>{language === "en" ? "Exit Fullscreen" : "Keluar Layar Penuh"}</span>
+                </button>
+              </div>
+            </div>
+
+            {/* Immersive Main Panel */}
+            <div className="flex-1 flex min-h-0 bg-[#080c14] relative overflow-hidden">
+              {/* Left Column: Quick context info & stats */}
+              <div className="hidden md:flex w-80 border-r border-slate-900/60 bg-[#060a12]/70 p-6 flex-col shrink-0 gap-5 overflow-y-auto custom-scrollbar">
+                <div>
+                  <h3 className="text-[11px] font-bold text-indigo-400 uppercase tracking-widest mb-1">
+                    {language === "en" ? "RAG Context Engine" : "Mesin Konteks RAG"}
+                  </h3>
+                  <p className="text-[11px] text-slate-400 leading-relaxed font-sans">
+                    {language === "en"
+                      ? "The AI assistant has real-time access to your codebase's Abstract Syntax Tree (AST), complexity ratings, and dependency metadata."
+                      : "Asisten AI memiliki akses langsung ke Abstract Syntax Tree (AST) basis kode, metrik kompleksitas, dan metadata dependensi Anda."}
+                  </p>
+                </div>
+
+                <div className="bg-[#090e18] p-4 rounded-xl border border-slate-900 space-y-3">
+                  <span className="text-[9px] font-bold text-slate-500 uppercase tracking-widest block border-b border-slate-900 pb-1.5">
+                    {language === "en" ? "Codebase Context" : "Konteks Basis Kode"}
+                  </span>
+                  <div className="grid grid-cols-2 gap-3 text-[10px]">
+                    <div>
+                      <span className="text-slate-500 block uppercase text-[8px] font-bold">{language === "en" ? "Health Score" : "Skor Kesehatan"}</span>
+                      <span className="text-emerald-400 font-mono font-bold text-xs">{data.stats?.healthScore || 100}%</span>
+                    </div>
+                    <div>
+                      <span className="text-slate-500 block uppercase text-[8px] font-bold">{language === "en" ? "Total Files" : "Total Berkas"}</span>
+                      <span className="text-indigo-400 font-mono font-bold text-xs">{data.stats?.totalFiles || 0}</span>
+                    </div>
+                    <div>
+                      <span className="text-slate-500 block uppercase text-[8px] font-bold">{language === "en" ? "Total Functions" : "Total Fungsi"}</span>
+                      <span className="text-purple-400 font-mono font-bold text-xs">{data.stats?.totalFunctions || 0}</span>
+                    </div>
+                    <div>
+                      <span className="text-slate-500 block uppercase text-[8px] font-bold">{language === "en" ? "Vulnerabilities" : "Kerentanan"}</span>
+                      <span className="text-rose-400 font-mono font-bold text-xs">{data.stats?.securityFindings || 0}</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Model active guide card */}
+                <div className="text-[11px] text-slate-400 bg-[#0a0f1b]/40 p-4 rounded-xl border border-slate-950 space-y-2">
+                  <span className="font-bold text-slate-300 uppercase tracking-wider text-[9px] block">
+                    {language === "en" ? "Selected Model Info" : "Info Model Terpilih"}
+                  </span>
+                  {modelProvider === "cloud_gemini" && (
+                    <p className="leading-relaxed text-slate-400">
+                      {language === "en"
+                        ? "Gemini Cloud API is active. Fast & highly intelligent reasoning engine for complex architectures."
+                        : "API Cloud Gemini aktif. Mesin penalaran cerdas dan cepat untuk arsitektur kode kompleks."}
+                    </p>
+                  )}
+                  {modelProvider === "local_ollama" && (
+                    <p className="leading-relaxed text-slate-400">
+                      {language === "en"
+                        ? `Ollama server configured at ${ollamaUrl}. Using local model "${ollamaModel}" for privacy-focused off-grid analysis.`
+                        : `Server Ollama dikonfigurasi di ${ollamaUrl}. Menggunakan model lokal "${ollamaModel}" untuk analisis privat luar jaringan.`}
+                    </p>
+                  )}
+                  {modelProvider === "local_ast" && (
+                    <p className="leading-relaxed text-slate-400">
+                      {language === "en"
+                        ? "AST fallback analyzer is active. Zero server dependencies, instant response using local heuristic solver."
+                        : "Penganalisis fallback AST aktif. Tanpa dependensi server, jawaban instan menggunakan pemecah heuristik lokal."}
+                    </p>
+                  )}
+                </div>
+              </div>
+
+              {/* Central Immersive Chat Workspace Area */}
+              <div className="flex-1 flex flex-col min-h-0 bg-[#080d16]/20">
+                {/* Chat message history container */}
+                <div className="flex-1 overflow-y-auto p-4 sm:p-8 space-y-4 custom-scrollbar flex flex-col min-h-0">
+                  <div className="max-w-4xl w-full mx-auto flex flex-col space-y-4">
+                    {chatMessages.length === 0 ? (
+                      <div className="flex flex-col items-center justify-center py-24 text-center">
+                        <div className="w-14 h-14 rounded-full bg-indigo-600/10 flex items-center justify-center mb-4 border border-indigo-500/20">
+                          <MessageSquare className="w-6 h-6 text-indigo-400" />
+                        </div>
+                        <h4 className="text-base font-bold text-slate-200">
+                          {language === "en" ? "Ready to analyze codebase" : "Siap menganalisis basis kode"}
+                        </h4>
+                        <p className="text-xs text-slate-500 max-w-sm mt-1 leading-relaxed">
+                          {language === "en"
+                            ? "Ask anything about project design, complex functions, technical debt or security issues. AI will auto-inject the workspace state."
+                            : "Tanyakan apa saja tentang desain proyek, fungsi kompleks, utang teknis atau masalah keamanan. AI akan memasukkan status basis kode otomatis."}
+                        </p>
+                      </div>
+                    ) : (
+                      chatMessages.map((msg, index) => (
+                        <div
+                          key={index}
+                          className={`flex flex-col max-w-[85%] rounded-xl p-4 text-xs sm:text-sm leading-relaxed ${
+                            msg.role === "user"
+                              ? "bg-indigo-600 text-white self-end shadow-xl shadow-indigo-600/10 border border-indigo-500/20"
+                              : "bg-[#0b101c] border border-slate-900 text-slate-200 self-start font-sans"
+                          }`}
+                        >
+                          <span className={`text-[9px] font-bold uppercase tracking-widest mb-1.5 ${
+                            msg.role === "user" ? "text-indigo-200" : "text-indigo-400"
+                          }`}>
+                            {msg.role === "user" ? (language === "en" ? "You" : "Anda") : "AI Assistant"}
+                          </span>
+                          <p className="whitespace-pre-wrap text-slate-200 text-xs sm:text-[13px] leading-relaxed font-sans">{msg.content}</p>
+                        </div>
+                      ))
+                    )}
+                    {chatLoading && (
+                      <div className="bg-[#0b101c] border border-slate-900 text-slate-400 rounded-xl p-4 text-xs self-start flex items-center gap-2">
+                        <span className="w-2 h-2 bg-indigo-500 rounded-full animate-bounce" />
+                        <span className="w-2 h-2 bg-indigo-500 rounded-full animate-bounce [animation-delay:0.2s]" />
+                        <span className="w-2 h-2 bg-indigo-500 rounded-full animate-bounce [animation-delay:0.4s]" />
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* Immersive Chat Input container */}
+                <div className="p-4 border-t border-slate-900/80 bg-[#090d16] shrink-0">
+                  <div className="max-w-4xl w-full mx-auto flex gap-3">
+                    <input
+                      id="input-ai-chat-immersive"
+                      type="text"
+                      placeholder={t.askAiPlaceholder}
+                      value={chatInput}
+                      onChange={(e) => setChatInput(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter") sendChatMessage();
+                      }}
+                      className="flex-1 bg-slate-900 border border-slate-800 rounded-xl text-xs sm:text-sm px-4 py-3.5 focus:outline-none focus:border-indigo-500 text-slate-100 placeholder-slate-500 shadow-inner"
+                    />
+                    <button
+                      id="btn-send-chat-immersive"
+                      onClick={sendChatMessage}
+                      disabled={chatLoading}
+                      className="bg-indigo-600 hover:bg-indigo-500 disabled:bg-slate-800 disabled:text-slate-500 text-white px-5 py-3.5 rounded-xl flex items-center justify-center transition-all cursor-pointer font-bold text-xs sm:text-sm uppercase tracking-wider shrink-0 shadow-lg shadow-indigo-600/10"
+                    >
+                      <Send className="w-4 h-4 mr-2" />
+                      <span>{language === "en" ? "Send" : "Kirim"}</span>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </motion.div>
         )}
       </AnimatePresence>
     </div>

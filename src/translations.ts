@@ -142,6 +142,7 @@ export interface Translations {
   detectModelsSuccess: string;
   detectModelsFailed: string;
   ollamaDropdownDefault: string;
+  toggleFullScreen: string;
 
   serverFolderBrowser: string;
   serverFolderDesc: string;
@@ -301,6 +302,7 @@ export const translations: Record<Language, Translations> = {
     detectModelsSuccess: "Detected {count} models!",
     detectModelsFailed: "Connection failed. Ensure Ollama is running with OLLAMA_ORIGINS=\"*\"",
     ollamaDropdownDefault: "Type or select a model...",
+    toggleFullScreen: "Toggle Chat Fullscreen",
 
     serverFolderBrowser: "Server Folder Browser",
     serverFolderDesc: "Select any server folder path to scan and inspect code structures.",
@@ -458,6 +460,7 @@ export const translations: Record<Language, Translations> = {
     detectModelsSuccess: "Berhasil mendeteksi {count} model!",
     detectModelsFailed: "Koneksi gagal. Pastikan Ollama berjalan dengan OLLAMA_ORIGINS=\"*\"",
     ollamaDropdownDefault: "Ketik atau pilih model...",
+    toggleFullScreen: "Toggle Chat Layar Penuh",
 
     serverFolderBrowser: "Penjelajah Folder Server",
     serverFolderDesc: "Pilih jalur folder server mana saja untuk memindai dan memeriksa struktur kode.",

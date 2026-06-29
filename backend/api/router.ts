@@ -25,7 +25,7 @@ if (CONFIG.GEMINI_API_KEY) {
   });
 }
 
-function localArchitectureSolver(message: string, files: any[]): string {
+function localArchitectureSolver(message: string, files: any[], language = "id"): string {
   const query = message.toLowerCase();
   
   const matchedFiles = files.filter(f => {
@@ -38,33 +38,59 @@ function localArchitectureSolver(message: string, files: any[]): string {
     return nameMatch || keywordMatch;
   });
 
-  let response = `### 🌐 Local Metadata Intelligence Mode (API Fallback)\n\n`;
-  response += `*Notice: The primary Google Gemini API is currently experiencing extremely high demand. To keep your development workflow entirely seamless, AI Project Analyzer has automatically switched to Local AST Index Intelligence to answer your query instantly with exact codebase context.*\n\n`;
+  let response = language === "en"
+    ? `### 🌐 Local Metadata Intelligence Mode (API Fallback)\n\n`
+    : `### 🌐 Mode Kecerdasan Metadata Lokal (API Fallback)\n\n`;
+
+  if (language === "en") {
+    response += `*Notice: The primary Google Gemini API is currently experiencing extremely high demand. To keep your development workflow entirely seamless, AI Project Analyzer has automatically switched to Local AST Index Intelligence to answer your query instantly with exact codebase context.*\n\n`;
+  } else {
+    response += `*Catatan: API Google Gemini utama saat ini sedang mengalami lonjakan lalu lintas yang sangat tinggi. Agar alur kerja pengembangan Anda tetap lancar, Penganalisis Proyek AI telah secara otomatis beralih ke Kecerdasan Indeks AST Lokal untuk menjawab pertanyaan Anda secara instan dengan konteks basis kode yang tepat.*\n\n`;
+  }
 
   if (query.includes("jelaskan") || query.includes("explain") || query.includes("summary") || query.includes("project") || query.includes("apa") || query.includes("what")) {
-    response += `#### 📋 Codebase Summary & Architecture Overview\n\n`;
-    response += `- **Project Name:** AI Project Analyzer\n`;
-    response += `- **Estimated Architecture Style:** Layered Service Architecture\n`;
-    response += `- **Scanned File Count:** ${files.length} active files\n`;
-    response += `- **Total Code Volume:** ${files.reduce((sum, f) => sum + (f.loc || 0), 0)} lines of code\n\n`;
-    response += `#### 🏛️ Architectural Breakdown\n`;
-    response += `1. **Interactive Client Component (\`/src/App.tsx\`):** High-fidelity dashboard displaying Code Explorer, Project Health, Security flags, Call graphs, trend metrics, and simulated DevOps control panels.\n`;
-    response += `2. **Intelligence Backend (\`/server.ts\`):** Robust Express.js runtime executing deep heuristic AST scans, resolving circular references, serving files safely, and orchestrating fail-safes.\n`;
+    if (language === "en") {
+      response += `#### 📋 Codebase Summary & Architecture Overview\n\n`;
+      response += `- **Project Name:** AI Project Analyzer\n`;
+      response += `- **Estimated Architecture Style:** Layered Service Architecture\n`;
+      response += `- **Scanned File Count:** ${files.length} active files\n`;
+      response += `- **Total Code Volume:** ${files.reduce((sum, f) => sum + (f.loc || 0), 0)} lines of code\n\n`;
+      response += `#### 🏛️ Architectural Breakdown\n`;
+      response += `1. **Interactive Client Component (\`/src/App.tsx\`):** High-fidelity dashboard displaying Code Explorer, Project Health, Security flags, Call graphs, trend metrics, and simulated DevOps control panels.\n`;
+      response += `2. **Intelligence Backend (\`/server.ts\`):** Robust Express.js runtime executing deep heuristic AST scans, resolving circular references, serving files safely, and orchestrating fail-safes.\n`;
+    } else {
+      response += `#### 📋 Ringkasan Basis Kode & Gambaran Arsitektur\n\n`;
+      response += `- **Nama Proyek:** Penganalisis Proyek AI\n`;
+      response += `- **Estimasi Gaya Arsitektur:** Arsitektur Layanan Berlapis (Layered Service)\n`;
+      response += `- **Jumlah File yang Dipindai:** ${files.length} file aktif\n`;
+      response += `- **Total Volume Kode:** ${files.reduce((sum, f) => sum + (f.loc || 0), 0)} baris kode\n\n`;
+      response += `#### 🏛️ Rincian Arsitektur\n`;
+      response += `1. **Komponen Klien Interaktif (\`/src/App.tsx\`):** Dasbor fidelitas tinggi yang menampilkan Penjelajah Kode, Kesehatan Proyek, Bendera Keamanan, Grafik Panggilan, Metrik Tren, dan panel kontrol DevOps buatan.\n`;
+      response += `2. **Backend Kecerdasan (\`/server.ts\`):** Runtime Express.js yang tangguh untuk menjalankan pemindaian AST heuristik mendalam, menyelesaikan dependensi sirkular, menyajikan file dengan aman, dan mengatur mekanisme pengaman.\n`;
+    }
     return response;
   }
 
   if (query.includes("database") || query.includes("db") || query.includes("koneksi") || query.includes("schema") || query.includes("connection")) {
-    response += `#### 🗄️ Database Schema & Connection Status\n\n`;
-    response += `A search across local scanned modules reveals:\n\n`;
-    response += `- **Main Service Handler:** \`/server.ts\` (Contains file scanning and index lookup mechanics)\n`;
-    response += `- **Environment Configuration:** DB connection variables mapped in \".env.example\"\n`;
-    response += `- **Identified Adapters:** SQLite embedded schema configurations.\n\n`;
-    response += `The schema analyzer automatically indexes schemas, ORM models, and environment credentials. Database models are represented clearly on the main **Dashboard** under **Database Configurations**.`;
+    if (language === "en") {
+      response += `#### 🗄️ Database Schema & Connection Status\n\n`;
+      response += `A search across local scanned modules reveals:\n\n`;
+      response += `- **Main Service Handler:** \`/server.ts\` (Contains file scanning and index lookup mechanics)\n`;
+      response += `- **Environment Configuration:** DB connection variables mapped in \".env.example\"\n`;
+      response += `- **Identified Adapters:** SQLite embedded schema configurations.\n\n`;
+      response += `The schema analyzer automatically indexes schemas, ORM models, and environment credentials. Database models are represented clearly on the main **Dashboard** under **Database Configurations**.`;
+    } else {
+      response += `#### 🗄️ Skema Database & Status Koneksi\n\n`;
+      response += `Pencarian di seluruh modul yang dipindai secara lokal mengungkapkan:\n\n`;
+      response += `- **Pengelola Layanan Utama:** \`/server.ts\` (Berisi mekanisme pemindaian file dan pencarian indeks)\n`;
+      response += `- **Konfigurasi Lingkungan:** Variabel koneksi DB dipetakan di \".env.example\"\n`;
+      response += `- **Adaptor Teridentifikasi:** Konfigurasi skema tertanam SQLite.\n\n`;
+      response += `Penganalisis skema secara otomatis mengindeks skema, model ORM, dan kredensial lingkungan. Model database direpresentasikan dengan jelas di **Dasbor** utama di bawah **Konfigurasi Database**.`;
+    }
     return response;
   }
 
   if (query.includes("bug") || query.includes("security") || query.includes("celah") || query.includes("debt") || query.includes("vulnerability")) {
-    response += `#### 🛡️ Local Quality Audit & Vulnerability Check\n\n`;
     const issues: any[] = [];
     files.forEach(f => {
       if (f.securityIssues) {
@@ -74,37 +100,72 @@ function localArchitectureSolver(message: string, files: any[]): string {
       }
     });
 
-    if (issues.length > 0) {
-      response += `Here are the top findings detected by our local AST engine:\n\n`;
-      issues.slice(0, 5).forEach((iss, i) => {
-        response += `${i + 1}. **${iss.type}** [${iss.severity.toUpperCase()}] at line ${iss.line} of \`${iss.file}\`: *${iss.description}*\n`;
-      });
+    if (language === "en") {
+      response += `#### 🛡️ Local Quality Audit & Vulnerability Check\n\n`;
+      if (issues.length > 0) {
+        response += `Here are the top findings detected by our local AST engine:\n\n`;
+        issues.slice(0, 5).forEach((iss, i) => {
+          response += `${i + 1}. **${iss.type}** [${iss.severity.toUpperCase()}] at line ${iss.line} of \`${iss.file}\`: *${iss.description}*\n`;
+        });
+      } else {
+        response += `🎉 No critical static analysis vulnerabilities or hardcoded credentials detected in local scans. Maintainability score is excellent!`;
+      }
     } else {
-      response += `🎉 No critical static analysis vulnerabilities or hardcoded credentials detected in local scans. Maintainability score is excellent!`;
+      response += `#### 🛡️ Audit Kualitas Lokal & Pemeriksaan Kerentanan\n\n`;
+      if (issues.length > 0) {
+        response += `Berikut adalah temuan teratas yang terdeteksi oleh mesin AST lokal kami:\n\n`;
+        issues.slice(0, 5).forEach((iss, i) => {
+          response += `${i + 1}. **${iss.type}** [${iss.severity.toUpperCase()}] pada baris ${iss.line} di \`${iss.file}\`: *${iss.description}*\n`;
+        });
+      } else {
+        response += `🎉 Tidak ada kerentanan analisis statis kritis atau kredensial yang dikodekan secara keras yang terdeteksi dalam pemindaian lokal. Skor kemudahan pemeliharaan sangat baik!`;
+      }
     }
     return response;
   }
 
   if (matchedFiles.length > 0) {
-    response += `#### 🔍 Relevant Components Mapped for "${message}"\n\n`;
-    response += `Based on your request, our local analyzer identified the following modules containing matching signatures or imports:\n\n`;
-    matchedFiles.slice(0, 3).forEach(f => {
-      response += `- **File:** \`${f.path}\` (${f.loc || 0} LOC)\n`;
-      if (f.symbols && f.symbols.length > 0) {
-        response += `  - *Symbols:* ${f.symbols.slice(0, 5).map((s: any) => `\`${s.name}\` (${s.kind})`).join(", ")}\n`;
-      }
-      if (f.todos && f.todos.length > 0) {
-        response += `  - *Pending Tasks:* ${f.todos.length} active TODOs\n`;
-      }
-      response += `\n`;
-    });
-    response += `You can navigate to these modules in the **Interactive Code Explorer** tab for precise definition inspection.`;
+    if (language === "en") {
+      response += `#### 🔍 Relevant Components Mapped for "${message}"\n\n`;
+      response += `Based on your request, our local analyzer identified the following modules containing matching signatures or imports:\n\n`;
+      matchedFiles.slice(0, 3).forEach(f => {
+        response += `- **File:** \`${f.path}\` (${f.loc || 0} LOC)\n`;
+        if (f.symbols && f.symbols.length > 0) {
+          response += `  - *Symbols:* ${f.symbols.slice(0, 5).map((s: any) => `\`${s.name}\` (${s.kind})`).join(", ")}\n`;
+        }
+        if (f.todos && f.todos.length > 0) {
+          response += `  - *Pending Tasks:* ${f.todos.length} active TODOs\n`;
+        }
+        response += `\n`;
+      });
+      response += `You can navigate to these modules in the **Interactive Code Explorer** tab for precise definition inspection.`;
+    } else {
+      response += `#### 🔍 Komponen Relevan yang Dipetakan untuk "${message}"\n\n`;
+      response += `Berdasarkan permintaan Anda, penganalisis lokal kami mengidentifikasi modul-modul berikut yang berisi tanda tangan atau impor yang cocok:\n\n`;
+      matchedFiles.slice(0, 3).forEach(f => {
+        response += `- **File:** \`${f.path}\` (${f.loc || 0} LOC)\n`;
+        if (f.symbols && f.symbols.length > 0) {
+          response += `  - *Simbol:* ${f.symbols.slice(0, 5).map((s: any) => `\`${s.name}\` (${s.kind})`).join(", ")}\n`;
+        }
+        if (f.todos && f.todos.length > 0) {
+          response += `  - *Tugas Tertunda:* ${f.todos.length} TODO aktif\n`;
+        }
+        response += `\n`;
+      });
+      response += `Anda dapat menavigasi ke modul-modul ini di tab **Penjelajah Kode Interaktif** untuk pemeriksaan definisi yang tepat.`;
+    }
     return response;
   }
 
-  response += `I ran your request against our **Local AST Analyzer Engine**.\n\n`;
-  response += `The project is a fully-integrated full-stack web application built with **React, Vite, Express, and TailwindCSS**. It consists of **${files.length} source code files** totaling **${files.reduce((sum, f) => sum + (f.loc || 0), 0)} lines of code**.\n\n`;
-  response += `Please try asking a specific architectural or file-level question, or check back shortly once the global Google Gemini API server spike resolves!`;
+  if (language === "en") {
+    response += `I ran your request against our **Local AST Analyzer Engine**.\n\n`;
+    response += `The project is a fully-integrated full-stack web application built with **React, Vite, Express, and TailwindCSS**. It consists of **${files.length} source code files** totaling **${files.reduce((sum, f) => sum + (f.loc || 0), 0)} lines of code**.\n\n`;
+    response += `Please try asking a specific architectural or file-level question, or check back shortly once the global Google Gemini API server spike resolves!`;
+  } else {
+    response += `Saya menjalankan permintaan Anda di **Mesin Penganalisis AST Lokal** kami.\n\n`;
+    response += `Proyek ini adalah aplikasi web full-stack yang terintegrasi penuh yang dibangun dengan **React, Vite, Express, dan TailwindCSS**. Ini terdiri dari **${files.length} file kode sumber** dengan total **${files.reduce((sum, f) => sum + (f.loc || 0), 0)} baris kode**.\n\n`;
+    response += `Silakan coba ajukan pertanyaan spesifik tentang arsitektur atau tingkat file, atau periksa kembali segera setelah lonjakan lalu lintas server API Google Gemini utama mereda!`;
+  }
   return response;
 }
 
@@ -487,7 +548,7 @@ async function generateContentWithFallback(ai: GoogleGenAI, options: { contents:
 }
 
 apiRouter.post("/chat", async (req, res) => {
-  const { message, chatHistory = [], targetDir } = req.body;
+  const { message, chatHistory = [], targetDir, language = "id" } = req.body;
 
   if (!message) {
     return res.status(400).json({ error: "Message is required." });
@@ -537,12 +598,25 @@ apiRouter.post("/chat", async (req, res) => {
 
   if (!ai) {
     // Elegant fallback to high fidelity local AST solver
-    const fallbackReply = localArchitectureSolver(message, analyzedFiles);
+    const fallbackReply = localArchitectureSolver(message, analyzedFiles, language);
     return res.json({ reply: fallbackReply });
   }
 
   try {
-    const systemPrompt = `Anda adalah "AI Project Analyzer", asisten pengkodean dan pengembangan aplikasi yang cerdas dan berdaya penuh yang dapat bertindak persis seperti AI Coding Agent di ruang kerja aktif.
+    const systemPrompt = language === "en"
+      ? `You are "AI Project Analyzer", a smart, full-powered coding and application development assistant acting exactly like an AI Coding Agent in the active workspace.
+You have direct read/write tools to inspect and modify files, list directories, and run TypeScript compile checks in the project.
+
+IMPORTANT: You must always respond and explain all your answers in professional, friendly, and easy-to-understand English.
+
+If the user asks you to implement changes, fix bugs, add features, or write new scripts/modules, follow these steps:
+1. READ the relevant existing files first to understand the context.
+2. WRITE the required changes or new files.
+3. RUN compile checks to ensure no syntax or compiler errors.
+4. EXPLAIN the changes clearly to the user in English, listing the files you modified/created.
+
+Always write complete, production-ready, functional code. Use JetBrains Mono code snippets where applicable. Avoid self-praise or sales-pitch language. Keep explanations concise and highly professional.`
+      : `Anda adalah "AI Project Analyzer", asisten pengkodean dan pengembangan aplikasi yang cerdas dan berdaya penuh yang dapat bertindak persis seperti AI Coding Agent di ruang kerja aktif.
 Anda memiliki alat baca/tulis langsung untuk memeriksa dan memodifikasi file, membuat daftar direktori, dan menjalankan pemeriksaan kompilasi TypeScript dalam proyek.
 
 PENTING: Anda harus selalu merespons dan menjelaskan semua jawaban Anda dalam Bahasa Indonesia yang ramah, profesional, dan mudah dipahami.

@@ -56,8 +56,12 @@ import {
   SecurityIssue,
   TrendData
 } from "./types";
+import { translations, Language } from "./translations";
 
 export default function App() {
+  const [language, setLanguage] = useState<Language>("id");
+  const t = translations[language];
+
   const [loading, setLoading] = useState<boolean>(true);
   const [data, setData] = useState<ScanResult | null>(null);
   const [trends, setTrends] = useState<TrendData[]>([]);
@@ -116,6 +120,23 @@ export default function App() {
     fetchScanData();
     fetchTrendData();
   }, []);
+
+  useEffect(() => {
+    setChatMessages(prev => {
+      const copy = [...prev];
+      if (copy[0] && copy[0].role === "ai" && (
+        copy[0].content.startsWith("Hello!") || copy[0].content.startsWith("Halo!")
+      )) {
+        copy[0] = {
+          role: "ai",
+          content: language === "en" 
+            ? "Hello! I am your AI Project Analyzer. I've indexed your codebase. Ask me anything about your software architecture, potential bugs, technical debt, or application workflow."
+            : "Halo! Saya adalah Penganalisis Proyek AI Anda. Saya telah mengindeks basis kode Anda. Tanyakan apa pun kepada saya tentang arsitektur perangkat lunak, potensi bug, utang teknis, atau alur kerja aplikasi Anda."
+        };
+      }
+      return copy;
+    });
+  }, [language]);
 
   const fetchScanData = async (customPath?: string) => {
     setLoading(true);
@@ -217,6 +238,7 @@ export default function App() {
           message: userMsg,
           chatHistory: chatMessages.map(m => ({ role: m.role, content: m.content })),
           targetDir: scanDir,
+          language: language,
         }),
       });
       const json = await res.json();
@@ -416,7 +438,7 @@ ${data.security.map((s, idx) => `
           <button
             onClick={() => setExplorerDrawerOpen(true)}
             className="lg:hidden p-2 text-slate-400 hover:text-white rounded-md bg-slate-900/80 border border-slate-800 cursor-pointer hover:border-indigo-500 transition-all shrink-0"
-            title="Open Project Explorer"
+            title={t.openExplorer}
           >
             <Menu className="w-4 h-4" />
           </button>
@@ -426,23 +448,47 @@ ${data.security.map((s, idx) => `
           </div>
           <div>
             <div className="flex items-center gap-2">
-              <h1 className="text-xs sm:text-sm font-bold tracking-tight text-white uppercase truncate max-w-[120px] sm:max-w-none">Penganalisis Proyek AI</h1>
+              <h1 className="text-xs sm:text-sm font-bold tracking-tight text-white uppercase truncate max-w-[120px] sm:max-w-none">{t.appName}</h1>
               <span className="text-[9px] sm:text-[10px] bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 px-1.5 sm:px-2 py-0.5 rounded-full font-mono shrink-0">
                 Enterprise v2.4
               </span>
             </div>
-            <p className="text-[10px] sm:text-[11px] text-slate-400 truncate max-w-[180px] sm:max-w-none">Pemindaian kode statis, kecerdasan dependensi & rangkaian konteks Enterprise</p>
+            <p className="text-[10px] sm:text-[11px] text-slate-400 truncate max-w-[180px] sm:max-w-none">{t.appDesc}</p>
           </div>
         </div>
 
         <div className="flex items-center gap-2 sm:gap-4">
+          {/* Language Toggle Button */}
+          <div className="flex items-center bg-slate-900/80 rounded-md border border-slate-800 p-0.5 select-none shrink-0">
+            <button
+              onClick={() => setLanguage("id")}
+              className={`px-2 py-1 text-[10px] font-bold rounded transition-all cursor-pointer ${
+                language === "id"
+                  ? "bg-indigo-600 text-white shadow-md"
+                  : "text-slate-400 hover:text-slate-200"
+              }`}
+            >
+              ID
+            </button>
+            <button
+              onClick={() => setLanguage("en")}
+              className={`px-2 py-1 text-[10px] font-bold rounded transition-all cursor-pointer ${
+                language === "en"
+                  ? "bg-indigo-600 text-white shadow-md"
+                  : "text-slate-400 hover:text-slate-200"
+              }`}
+            >
+              EN
+            </button>
+          </div>
+
           <div 
             onClick={() => openDirectoryBrowser(scanDir || undefined)}
             className="flex items-center gap-1.5 bg-slate-900/80 px-2 sm:px-3 py-1.5 rounded-md border border-slate-800 text-xs hover:border-indigo-500 hover:bg-slate-800/40 cursor-pointer transition-all select-none max-w-[110px] sm:max-w-none shrink-0"
-            title="Klik untuk menelusuri dan mengubah folder proyek"
+            title={t.browseDirTooltip}
           >
             <Folder className="w-3.5 h-3.5 text-indigo-400 shrink-0" />
-            <span className="font-mono text-slate-400 hidden md:inline">Dir Proyek:</span>
+            <span className="font-mono text-slate-400 hidden md:inline">{t.projectDir}</span>
             <span className="font-semibold text-indigo-300 font-mono truncate max-w-[60px] sm:max-w-[120px]">
               {scanDir ? scanDir.split('/').pop() || scanDir : "workspace"}
             </span>
@@ -455,14 +501,14 @@ ${data.security.map((s, idx) => `
             className="bg-indigo-600 hover:bg-indigo-500 disabled:bg-slate-800 text-white font-medium text-xs px-2.5 sm:px-3.5 py-1.5 rounded-md flex items-center gap-1.5 sm:gap-2 shadow-lg shadow-indigo-600/10 hover:shadow-indigo-600/20 transition-all cursor-pointer whitespace-nowrap shrink-0"
           >
             <RefreshCw className={`w-3.5 h-3.5 ${loading ? "animate-spin" : ""}`} />
-            <span className="hidden sm:inline">{loading ? "Menganalisis..." : "Pindai Ulang"}</span>
+            <span className="hidden sm:inline">{loading ? t.analyzing : t.reScan}</span>
           </button>
 
           {/* Mobile AI Chat Toggle */}
           <button
             onClick={() => setChatSidebarOpen(true)}
             className="xl:hidden p-2 text-indigo-400 hover:text-white rounded-md bg-slate-900/80 border border-slate-800 hover:border-indigo-500 cursor-pointer transition-all shrink-0"
-            title="Open AI Chat Assistant"
+            title={t.openChat}
           >
             <MessageSquare className="w-4 h-4" />
           </button>
@@ -476,24 +522,24 @@ ${data.security.map((s, idx) => `
             <Cpu className="w-6 h-6 text-indigo-400 absolute" />
           </div>
           <h3 className="text-sm font-semibold text-white tracking-wider uppercase mb-2 animate-pulse">
-            Menganalisis Kode Sumber Proyek Secara Mendalam
+            {t.loadingTitle}
           </h3>
           <p className="text-xs text-slate-400 max-w-md text-center leading-relaxed">
-            Mengurai file simbol, membangun pohon token, memetakan rute dependensi melingkar, memperkirakan pola arsitektur, dan menghasilkan kandidat database vektor.
+            {t.loadingDesc}
           </p>
         </div>
       ) : !data ? (
         <div className="flex-1 flex flex-col items-center justify-center bg-[#090d16] p-8 text-center">
           <AlertTriangle className="w-12 h-12 text-rose-500 mb-4" />
-          <h2 className="text-sm font-semibold text-white mb-2 uppercase tracking-wide">Mesin Analisis Gagal</h2>
+          <h2 className="text-sm font-semibold text-white mb-2 uppercase tracking-wide">{t.engineFailed}</h2>
           <p className="text-xs text-slate-400 max-w-sm mb-4">
-            Tidak dapat mengambil analitik pemindaian dari database server lokal. Pastikan mesin latar belakang server.ts berfungsi dengan baik.
+            {t.engineFailedDesc}
           </p>
           <button
-            onClick={fetchScanData}
+            onClick={() => fetchScanData()}
             className="bg-indigo-600 text-white text-xs px-4 py-2 rounded hover:bg-indigo-500 cursor-pointer"
           >
-            Ulangi Proses Pemindaian
+            {t.retryScan}
           </button>
         </div>
       ) : (
@@ -501,9 +547,9 @@ ${data.security.map((s, idx) => `
           {/* LEFT SIDEBAR: VS Code File Explorer */}
           <aside className="hidden lg:flex w-64 border-r border-slate-900 bg-[#0b0f1a] flex-col shrink-0 overflow-y-auto">
             <div className="p-3 border-b border-slate-900 flex items-center justify-between">
-              <span className="text-[10px] font-bold text-slate-400 tracking-wider uppercase">Penjelajah Proyek</span>
+              <span className="text-[10px] font-bold text-slate-400 tracking-wider uppercase">{t.projectExplorer}</span>
               <span className="text-[10px] bg-indigo-500/10 text-indigo-400 px-1.5 py-0.5 rounded font-mono">
-                {data.stats.totalFiles} File
+                {data.stats.totalFiles} {t.filesCount}
               </span>
             </div>
 
@@ -512,7 +558,7 @@ ${data.security.map((s, idx) => `
                 <Search className="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-2" />
                 <input
                   type="text"
-                  placeholder="Filter file proyek..."
+                  placeholder={t.filterPlaceholder}
                   value={treeSearch}
                   onChange={(e) => setTreeSearch(e.target.value)}
                   className="w-full bg-slate-900/50 border border-slate-800 rounded-md text-xs pl-8 pr-3 py-1.5 focus:outline-none focus:border-indigo-500 text-slate-200 font-sans transition-all"
@@ -527,9 +573,9 @@ ${data.security.map((s, idx) => `
             <div className="p-3 border-t border-slate-900 bg-[#0d1222] text-[11px] text-slate-400">
               <div className="flex items-center gap-2 mb-1.5">
                 <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-                <span className="font-semibold text-slate-300">Sinkronisasi Otomatis Aktif</span>
+                <span className="font-semibold text-slate-300">{t.autoSync}</span>
               </div>
-              <p className="leading-relaxed text-[10px]">Perubahan dianalisis secara inkremental untuk memperbarui basis data Konteks LLM.</p>
+              <p className="leading-relaxed text-[10px]">{t.autoSyncDesc}</p>
             </div>
           </aside>
 
@@ -538,11 +584,11 @@ ${data.security.map((s, idx) => `
             {/* Tabs Navigation */}
             <div className="flex border-b border-slate-900 bg-[#0b0f1a] px-4">
               {[
-                { id: "dashboard", label: "Dasbor", icon: Activity },
-                { id: "explorer", label: "Penjelajah Kode Interaktif", icon: Code },
-                { id: "graph", label: "Peta Dependensi", icon: Network },
-                { id: "trends", label: "Perkembangan Tren", icon: TrendingUp },
-                { id: "devops", label: "Integrasi CI/CD & DevOps", icon: Sliders },
+                { id: "dashboard", label: t.tabDashboard, icon: Activity },
+                { id: "explorer", label: t.tabExplorer, icon: Code },
+                { id: "graph", label: t.tabGraph, icon: Network },
+                { id: "trends", label: t.tabTrends, icon: TrendingUp },
+                { id: "devops", label: t.tabDevops, icon: Sliders },
               ].map(tab => {
                 const Icon = tab.icon;
                 const active = activeTab === tab.id;
@@ -1505,10 +1551,10 @@ jobs:
             <div className="p-3 border-b border-slate-900 flex items-center justify-between bg-[#0b0f1a]">
               <span className="text-[10px] font-bold text-slate-300 uppercase tracking-widest flex items-center gap-1.5">
                 <MessageSquare className="w-3.5 h-3.5 text-indigo-400" />
-                Mesin Asisten AI
+                {t.aiAssistantTitle}
               </span>
               <span className="text-[10px] bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 px-2 py-0.5 rounded-full font-mono font-bold">
-                Konteks RAG
+                {t.ragContext}
               </span>
             </div>
 
@@ -1540,7 +1586,7 @@ jobs:
               <input
                 id="input-ai-chat"
                 type="text"
-                placeholder="Tanyakan AI tentang basis kode ini..."
+                placeholder={t.askAiPlaceholder}
                 value={chatInput}
                 onChange={(e) => setChatInput(e.target.value)}
                 onKeyDown={(e) => {
@@ -1560,9 +1606,9 @@ jobs:
 
             {/* Context File Export Tool Block */}
             <div className="p-4 border-t border-slate-900 bg-[#0d1222] space-y-3">
-              <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Pembangkit File Konteks</span>
+              <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">{t.contextFileGenerators}</span>
               <p className="text-[10px] text-slate-400 leading-normal">
-                Ekspor bundel dokumentasi yang dihasilkan untuk digunakan oleh Agen AI hilir.
+                {t.contextFileDesc}
               </p>
 
               <div className="space-y-1.5">

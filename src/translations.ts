@@ -93,6 +93,9 @@ export interface Translations {
   exportFileMaps: string;
   exportGraph: string;
   exportSymbols: string;
+  zoomIn: string;
+  zoomOut: string;
+  zoomReset: string;
 
   healthDebtTitle: string;
   healthDebtDesc: string;
@@ -238,6 +241,9 @@ export const translations: Record<Language, Translations> = {
     exportFileMaps: "Export File Maps",
     exportGraph: "Export Graph",
     exportSymbols: "Export Symbols",
+    zoomIn: "Zoom In",
+    zoomOut: "Zoom Out",
+    zoomReset: "Reset Zoom",
 
     healthDebtTitle: "Health vs Technical Debt Progression",
     healthDebtDesc: "Shows long term health index stability relative to refactoring timelines.",
@@ -381,6 +387,9 @@ export const translations: Record<Language, Translations> = {
     exportFileMaps: "Ekspor Peta File",
     exportGraph: "Ekspor Grafis",
     exportSymbols: "Ekspor Simbol",
+    zoomIn: "Perbesar",
+    zoomOut: "Perkecil",
+    zoomReset: "Reset Zoom",
 
     healthDebtTitle: "Perkembangan Kesehatan vs Utang Teknis",
     healthDebtDesc: "Menampilkan stabilitas indeks kesehatan jangka panjang relatif terhadap linimasa pemfaktoran ulang.",

@@ -32,7 +32,9 @@ import {
   TrendingUp,
   X,
   Plus,
-  Menu
+  Menu,
+  ZoomIn,
+  ZoomOut
 } from "lucide-react";
 import Editor from "@monaco-editor/react";
 import {
@@ -115,6 +117,10 @@ export default function App() {
   // Graph states
   const [graphSearch, setGraphSearch] = useState<string>("");
   const [selectedGraphNode, setSelectedGraphNode] = useState<string | null>(null);
+  const [graphZoom, setGraphZoom] = useState<number>(1);
+  const [graphPan, setGraphPan] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
+  const [isPanning, setIsPanning] = useState<boolean>(false);
+  const [panStart, setPanStart] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
 
   useEffect(() => {
     fetchScanData();
@@ -427,6 +433,26 @@ ${data.security.map((s, idx) => `
         </div>
       );
     });
+  };
+
+  const handleGraphMouseDown = (e: React.MouseEvent<SVGSVGElement>) => {
+    const target = e.target as SVGElement;
+    if (target.tagName === "svg" || target.tagName === "line" || target.tagName === "path") {
+      setIsPanning(true);
+      setPanStart({ x: e.clientX - graphPan.x, y: e.clientY - graphPan.y });
+    }
+  };
+
+  const handleGraphMouseMove = (e: React.MouseEvent<SVGSVGElement>) => {
+    if (!isPanning) return;
+    setGraphPan({
+      x: e.clientX - panStart.x,
+      y: e.clientY - panStart.y,
+    });
+  };
+
+  const handleGraphMouseUp = () => {
+    setIsPanning(false);
   };
 
   return (
@@ -1092,8 +1118,43 @@ ${data.security.map((s, idx) => `
 
                       <div className="grid grid-cols-1 lg:grid-cols-4 gap-4">
                         <div className="lg:col-span-3 border border-slate-950 bg-[#090d16] rounded-xl h-[450px] relative overflow-hidden flex items-center justify-center">
+                          {/* Zoom Control floating panel */}
+                          <div className="absolute top-4 right-4 flex items-center gap-1.5 bg-slate-950/90 border border-slate-800 p-1.5 rounded-lg shadow-xl z-10 select-none">
+                            <button
+                              onClick={() => setGraphZoom(prev => Math.min(3, prev + 0.1))}
+                              className="p-1.5 text-slate-400 hover:text-white hover:bg-slate-800 rounded transition-colors cursor-pointer flex items-center justify-center"
+                              title={t.zoomIn}
+                            >
+                              <ZoomIn className="w-4 h-4" />
+                            </button>
+                            <button
+                              onClick={() => setGraphZoom(prev => Math.max(0.3, prev - 0.1))}
+                              className="p-1.5 text-slate-400 hover:text-white hover:bg-slate-800 rounded transition-colors cursor-pointer flex items-center justify-center"
+                              title={t.zoomOut}
+                            >
+                              <ZoomOut className="w-4 h-4" />
+                            </button>
+                            <button
+                              onClick={() => {
+                                setGraphZoom(1);
+                                setGraphPan({ x: 0, y: 0 });
+                              }}
+                              className="px-2 py-1 text-slate-400 hover:text-white hover:bg-slate-800 rounded transition-colors cursor-pointer text-[10px] font-mono font-bold"
+                              title={t.zoomReset}
+                            >
+                              {Math.round(graphZoom * 100)}%
+                            </button>
+                          </div>
+
                           {/* Lightweight SVG Directed Graph view */}
-                          <svg className="w-full h-full" style={{ background: "#060911" }}>
+                          <svg
+                            className={`w-full h-full select-none ${isPanning ? "cursor-grabbing" : "cursor-grab"}`}
+                            style={{ background: "#060911" }}
+                            onMouseDown={handleGraphMouseDown}
+                            onMouseMove={handleGraphMouseMove}
+                            onMouseUp={handleGraphMouseUp}
+                            onMouseLeave={handleGraphMouseUp}
+                          >
                             <defs>
                               <marker
                                 id="arrow"
@@ -1108,65 +1169,72 @@ ${data.security.map((s, idx) => `
                               </marker>
                             </defs>
 
-                            {/* Render connection edges */}
-                            {data.graph.edges.map((edge) => {
-                              const sourceNode = data.graph.nodes.find(n => n.id === edge.source);
-                              const targetNode = data.graph.nodes.find(n => n.id === edge.target);
+                            {/* Wrapped zoomed and panned elements group */}
+                            <g
+                              transform={`translate(${graphPan.x}, ${graphPan.y}) scale(${graphZoom})`}
+                              className="transition-transform duration-100 ease-out"
+                              style={{ transitionProperty: isPanning ? "none" : "transform" }}
+                            >
+                              {/* Render connection edges */}
+                              {data.graph.edges.map((edge) => {
+                                const sourceNode = data.graph.nodes.find(n => n.id === edge.source);
+                                const targetNode = data.graph.nodes.find(n => n.id === edge.target);
 
-                              if (!sourceNode || !targetNode) return null;
+                                if (!sourceNode || !targetNode) return null;
 
-                              const isHighlighted =
-                                selectedGraphNode === edge.source || selectedGraphNode === edge.target;
+                                const isHighlighted =
+                                  selectedGraphNode === edge.source || selectedGraphNode === edge.target;
 
-                              return (
-                                <line
-                                  key={edge.id}
-                                  x1={sourceNode.position.x - 100}
-                                  y1={sourceNode.position.y - 100}
-                                  x2={targetNode.position.x - 100}
-                                  y2={targetNode.position.y - 100}
-                                  stroke={isHighlighted ? "#818cf8" : "#1e293b"}
-                                  strokeWidth={isHighlighted ? 2.5 : 1}
-                                  strokeDasharray={edge.animated ? "4 4" : "0"}
-                                  markerEnd="url(#arrow)"
-                                />
-                              );
-                            })}
-
-                            {/* Render nodes */}
-                            {data.graph.nodes.map((node) => {
-                              const isSelected = selectedGraphNode === node.id;
-                              // Highlight matching search results
-                              const matchesSearch =
-                                graphSearch && node.data.label.toLowerCase().includes(graphSearch.toLowerCase());
-
-                              return (
-                                <g
-                                  key={node.id}
-                                  transform={`translate(${node.position.x - 100}, ${node.position.y - 100})`}
-                                  className="cursor-pointer"
-                                  onClick={() => setSelectedGraphNode(node.id)}
-                                >
-                                  <circle
-                                    r={isSelected ? 18 : matchesSearch ? 16 : 12}
-                                    fill={isSelected ? "#4f46e5" : matchesSearch ? "#e11d48" : "#0f172a"}
-                                    stroke={isSelected ? "#a5b4fc" : matchesSearch ? "#fda4af" : "#334155"}
-                                    strokeWidth={isSelected || matchesSearch ? 3 : 1.5}
-                                    className="transition-all"
+                                return (
+                                  <line
+                                    key={edge.id}
+                                    x1={sourceNode.position.x - 100}
+                                    y1={sourceNode.position.y - 100}
+                                    x2={targetNode.position.x - 100}
+                                    y2={targetNode.position.y - 100}
+                                    stroke={isHighlighted ? "#818cf8" : "#1e293b"}
+                                    strokeWidth={isHighlighted ? 2.5 : 1}
+                                    strokeDasharray={edge.animated ? "4 4" : "0"}
+                                    markerEnd="url(#arrow)"
                                   />
-                                  <text
-                                    y={25}
-                                    textAnchor="middle"
-                                    fill="#f8fafc"
-                                    fontSize="10"
-                                    fontFamily="monospace"
-                                    className="font-semibold pointer-events-none drop-shadow"
+                                );
+                              })}
+
+                              {/* Render nodes */}
+                              {data.graph.nodes.map((node) => {
+                                const isSelected = selectedGraphNode === node.id;
+                                // Highlight matching search results
+                                const matchesSearch =
+                                  graphSearch && node.data.label.toLowerCase().includes(graphSearch.toLowerCase());
+
+                                return (
+                                  <g
+                                    key={node.id}
+                                    transform={`translate(${node.position.x - 100}, ${node.position.y - 100})`}
+                                    className="cursor-pointer"
+                                    onClick={() => setSelectedGraphNode(node.id)}
                                   >
-                                    {node.data.label}
-                                  </text>
-                                </g>
-                              );
-                            })}
+                                    <circle
+                                      r={isSelected ? 18 : matchesSearch ? 16 : 12}
+                                      fill={isSelected ? "#4f46e5" : matchesSearch ? "#e11d48" : "#0f172a"}
+                                      stroke={isSelected ? "#a5b4fc" : matchesSearch ? "#fda4af" : "#334155"}
+                                      strokeWidth={isSelected || matchesSearch ? 3 : 1.5}
+                                      className="transition-all"
+                                    />
+                                    <text
+                                      y={25}
+                                      textAnchor="middle"
+                                      fill="#f8fafc"
+                                      fontSize="10"
+                                      fontFamily="monospace"
+                                      className="font-semibold pointer-events-none drop-shadow"
+                                    >
+                                      {node.data.label}
+                                    </text>
+                                  </g>
+                                );
+                              })}
+                            </g>
                           </svg>
 
                           {/* Quick Tooltip overlay inside the canvas */}

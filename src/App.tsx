@@ -122,6 +122,11 @@ export default function App() {
   const [isPanning, setIsPanning] = useState<boolean>(false);
   const [panStart, setPanStart] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
 
+  // Model provider states
+  const [modelProvider, setModelProvider] = useState<"cloud_gemini" | "local_ollama" | "local_ast">("cloud_gemini");
+  const [ollamaModel, setOllamaModel] = useState<string>("llama3");
+  const [ollamaUrl, setOllamaUrl] = useState<string>("http://localhost:11434");
+
   useEffect(() => {
     fetchScanData();
     fetchTrendData();
@@ -245,6 +250,9 @@ export default function App() {
           chatHistory: chatMessages.map(m => ({ role: m.role, content: m.content })),
           targetDir: scanDir,
           language: language,
+          modelProvider: modelProvider,
+          ollamaModel: ollamaModel,
+          ollamaUrl: ollamaUrl,
         }),
       });
       const json = await res.json();
@@ -1626,6 +1634,75 @@ jobs:
               </span>
             </div>
 
+            {/* Model Provider Selector */}
+            <div className="p-3 border-b border-slate-900 bg-[#0b0f1a]/50 space-y-2">
+              <label className="text-[9px] font-bold text-slate-400 uppercase tracking-wider block">{t.modelProviderLabel}</label>
+              <div className="grid grid-cols-3 gap-1">
+                <button
+                  onClick={() => setModelProvider("cloud_gemini")}
+                  className={`py-1 px-1.5 rounded text-[10px] font-medium transition-all cursor-pointer text-center truncate ${
+                    modelProvider === "cloud_gemini"
+                      ? "bg-indigo-600/20 text-indigo-400 border border-indigo-500/30"
+                      : "bg-slate-900/40 text-slate-400 border border-slate-800 hover:text-slate-300"
+                  }`}
+                  title={t.cloudGeminiOption}
+                >
+                  Gemini
+                </button>
+                <button
+                  onClick={() => setModelProvider("local_ollama")}
+                  className={`py-1 px-1.5 rounded text-[10px] font-medium transition-all cursor-pointer text-center truncate ${
+                    modelProvider === "local_ollama"
+                      ? "bg-indigo-600/20 text-indigo-400 border border-indigo-500/30"
+                      : "bg-slate-900/40 text-slate-400 border border-slate-800 hover:text-slate-300"
+                  }`}
+                  title={t.localOllamaOption}
+                >
+                  Ollama
+                </button>
+                <button
+                  onClick={() => setModelProvider("local_ast")}
+                  className={`py-1 px-1.5 rounded text-[10px] font-medium transition-all cursor-pointer text-center truncate ${
+                    modelProvider === "local_ast"
+                      ? "bg-indigo-600/20 text-indigo-400 border border-indigo-500/30"
+                      : "bg-slate-900/40 text-slate-400 border border-slate-800 hover:text-slate-300"
+                  }`}
+                  title={t.localAstOption}
+                >
+                  AST
+                </button>
+              </div>
+
+              {modelProvider === "local_ollama" && (
+                <motion.div
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: "auto" }}
+                  className="space-y-2 pt-1 border-t border-slate-900/40"
+                >
+                  <div className="grid grid-cols-2 gap-2">
+                    <div className="space-y-1">
+                      <span className="text-[8px] font-bold text-slate-500 uppercase tracking-wider block">{t.ollamaModelLabel}</span>
+                      <input
+                        type="text"
+                        value={ollamaModel}
+                        onChange={(e) => setOllamaModel(e.target.value)}
+                        className="w-full bg-slate-900/80 border border-slate-850 rounded px-1.5 py-0.5 text-[10px] text-slate-300 focus:outline-none focus:border-indigo-500 font-mono"
+                      />
+                    </div>
+                    <div className="space-y-1">
+                      <span className="text-[8px] font-bold text-slate-500 uppercase tracking-wider block">{t.ollamaUrlLabel}</span>
+                      <input
+                        type="text"
+                        value={ollamaUrl}
+                        onChange={(e) => setOllamaUrl(e.target.value)}
+                        className="w-full bg-slate-900/80 border border-slate-850 rounded px-1.5 py-0.5 text-[10px] text-slate-300 focus:outline-none focus:border-indigo-500 font-mono"
+                      />
+                    </div>
+                  </div>
+                </motion.div>
+              )}
+            </div>
+
             {/* Chat message panel */}
             <div className="flex-1 overflow-y-auto p-4 space-y-3 custom-scrollbar flex flex-col min-h-0 bg-[#090d16]/30">
               {chatMessages.map((msg, index) => (
@@ -1960,6 +2037,75 @@ jobs:
                 >
                   <X className="w-4 h-4" />
                 </button>
+              </div>
+
+              {/* Model Provider Selector for Mobile */}
+              <div className="p-3 border-b border-slate-900 bg-[#0b0f1a]/50 space-y-2">
+                <label className="text-[9px] font-bold text-slate-400 uppercase tracking-wider block">{t.modelProviderLabel}</label>
+                <div className="grid grid-cols-3 gap-1">
+                  <button
+                    onClick={() => setModelProvider("cloud_gemini")}
+                    className={`py-1 px-1.5 rounded text-[10px] font-medium transition-all cursor-pointer text-center truncate ${
+                      modelProvider === "cloud_gemini"
+                        ? "bg-indigo-600/20 text-indigo-400 border border-indigo-500/30"
+                        : "bg-slate-900/40 text-slate-400 border border-slate-800 hover:text-slate-300"
+                    }`}
+                    title={t.cloudGeminiOption}
+                  >
+                    Gemini
+                  </button>
+                  <button
+                    onClick={() => setModelProvider("local_ollama")}
+                    className={`py-1 px-1.5 rounded text-[10px] font-medium transition-all cursor-pointer text-center truncate ${
+                      modelProvider === "local_ollama"
+                        ? "bg-indigo-600/20 text-indigo-400 border border-indigo-500/30"
+                        : "bg-slate-900/40 text-slate-400 border border-slate-800 hover:text-slate-300"
+                    }`}
+                    title={t.localOllamaOption}
+                  >
+                    Ollama
+                  </button>
+                  <button
+                    onClick={() => setModelProvider("local_ast")}
+                    className={`py-1 px-1.5 rounded text-[10px] font-medium transition-all cursor-pointer text-center truncate ${
+                      modelProvider === "local_ast"
+                        ? "bg-indigo-600/20 text-indigo-400 border border-indigo-500/30"
+                        : "bg-slate-900/40 text-slate-400 border border-slate-800 hover:text-slate-300"
+                    }`}
+                    title={t.localAstOption}
+                  >
+                    AST
+                  </button>
+                </div>
+
+                {modelProvider === "local_ollama" && (
+                  <motion.div
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: "auto" }}
+                    className="space-y-2 pt-1 border-t border-slate-900/40"
+                  >
+                    <div className="grid grid-cols-2 gap-2">
+                      <div className="space-y-1">
+                        <span className="text-[8px] font-bold text-slate-500 uppercase tracking-wider block">{t.ollamaModelLabel}</span>
+                        <input
+                          type="text"
+                          value={ollamaModel}
+                          onChange={(e) => setOllamaModel(e.target.value)}
+                          className="w-full bg-slate-900/80 border border-slate-850 rounded px-1.5 py-0.5 text-[10px] text-slate-300 focus:outline-none focus:border-indigo-500 font-mono"
+                        />
+                      </div>
+                      <div className="space-y-1">
+                        <span className="text-[8px] font-bold text-slate-500 uppercase tracking-wider block">{t.ollamaUrlLabel}</span>
+                        <input
+                          type="text"
+                          value={ollamaUrl}
+                          onChange={(e) => setOllamaUrl(e.target.value)}
+                          className="w-full bg-slate-900/80 border border-slate-850 rounded px-1.5 py-0.5 text-[10px] text-slate-300 focus:outline-none focus:border-indigo-500 font-mono"
+                        />
+                      </div>
+                    </div>
+                  </motion.div>
+                )}
               </div>
 
               {/* Chat messages */}

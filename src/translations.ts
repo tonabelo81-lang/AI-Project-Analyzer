@@ -131,6 +131,12 @@ export interface Translations {
   askAiPlaceholder: string;
   contextFileGenerators: string;
   contextFileDesc: string;
+  modelProviderLabel: string;
+  cloudGeminiOption: string;
+  localOllamaOption: string;
+  localAstOption: string;
+  ollamaModelLabel: string;
+  ollamaUrlLabel: string;
 
   serverFolderBrowser: string;
   serverFolderDesc: string;
@@ -279,6 +285,12 @@ export const translations: Record<Language, Translations> = {
     askAiPlaceholder: "Ask AI about this codebase...",
     contextFileGenerators: "Context File Generators",
     contextFileDesc: "Export generated documentation bundles designed for consumption by downstream AI Agents.",
+    modelProviderLabel: "Model Provider",
+    cloudGeminiOption: "Cloud API (Gemini)",
+    localOllamaOption: "Local Ollama",
+    localAstOption: "Local AST Analyzer",
+    ollamaModelLabel: "Ollama Model",
+    ollamaUrlLabel: "Ollama API URL",
 
     serverFolderBrowser: "Server Folder Browser",
     serverFolderDesc: "Select any server folder path to scan and inspect code structures.",
@@ -425,6 +437,12 @@ export const translations: Record<Language, Translations> = {
     askAiPlaceholder: "Tanyakan AI tentang basis kode ini...",
     contextFileGenerators: "Pembangkit File Konteks",
     contextFileDesc: "Ekspor bundel dokumentasi yang dihasilkan untuk digunakan oleh Agen AI hilir.",
+    modelProviderLabel: "Penyedia Model",
+    cloudGeminiOption: "API Cloud (Gemini)",
+    localOllamaOption: "Ollama Lokal",
+    localAstOption: "Penganalisis AST Lokal",
+    ollamaModelLabel: "Model Ollama",
+    ollamaUrlLabel: "URL API Ollama",
 
     serverFolderBrowser: "Penjelajah Folder Server",
     serverFolderDesc: "Pilih jalur folder server mana saja untuk memindai dan memeriksa struktur kode.",

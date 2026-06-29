@@ -547,8 +547,61 @@ async function generateContentWithFallback(ai: GoogleGenAI, options: { contents:
   throw lastError || new Error("All models failed to generate content.");
 }
 
+async function callOllama(
+  url: string,
+  model: string,
+  systemPrompt: string,
+  chatHistory: { role: string; content: string }[],
+  message: string
+): Promise<string> {
+  const endpoint = `${url.replace(/\/$/, "")}/api/chat`;
+  const messages = [
+    { role: "system", content: systemPrompt },
+    ...chatHistory.map((h: any) => ({
+      role: h.role === "user" ? "user" : "assistant",
+      content: h.content
+    })),
+    { role: "user", content: message }
+  ];
+
+  const controller = new AbortController();
+  const id = setTimeout(() => controller.abort(), 6000);
+
+  try {
+    const response = await fetch(endpoint, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        model: model,
+        messages: messages,
+        stream: false
+      }),
+      signal: controller.signal
+    });
+    clearTimeout(id);
+
+    if (!response.ok) {
+      throw new Error(`Ollama HTTP Error: ${response.status}`);
+    }
+
+    const data = (await response.json()) as any;
+    return data.message?.content || "No response content from Ollama.";
+  } catch (err: any) {
+    clearTimeout(id);
+    throw err;
+  }
+}
+
 apiRouter.post("/chat", async (req, res) => {
-  const { message, chatHistory = [], targetDir, language = "id" } = req.body;
+  const {
+    message,
+    chatHistory = [],
+    targetDir,
+    language = "id",
+    modelProvider = "cloud_gemini",
+    ollamaModel = "llama3",
+    ollamaUrl = "http://localhost:11434"
+  } = req.body;
 
   if (!message) {
     return res.status(400).json({ error: "Message is required." });
@@ -595,6 +648,66 @@ apiRouter.post("/chat", async (req, res) => {
   const summary = analyzedFiles.map(f => {
     return `- Path: ${f.path}\n  Symbols: Classes: [${f.symbols.filter(s => s.kind === "Class").map(s => s.name).join(", ")}], Functions: [${f.symbols.filter(s => s.kind === "Function").map(s => s.name).join(", ")}]\n  Lines: ${f.loc}, Complexity: ${f.complexity}, Security: ${f.securityIssues.length} issues.`;
   }).join("\n");
+
+  if (modelProvider === "local_ast") {
+    const fallbackReply = localArchitectureSolver(message, analyzedFiles, language);
+    return res.json({ reply: fallbackReply });
+  }
+
+  if (modelProvider === "local_ollama") {
+    const ollamaSystemPrompt = language === "en"
+      ? `You are "AI Project Analyzer", a smart, full-powered coding and application development assistant.
+You have analyzed the current codebase of the project. Here is the metadata summary of the project modules:
+${summary}
+
+IMPORTANT: Always respond in professional, friendly, and easy-to-understand English. Be precise, concise, and complete.`
+      : `Anda adalah "AI Project Analyzer", asisten pengkodean dan pengembangan aplikasi yang cerdas dan berdaya penuh.
+Anda telah menganalisis basis kode proyek saat ini. Berikut adalah ringkasan metadata modul proyek:
+${summary}
+
+PENTING: Selalu berikan respons dalam Bahasa Indonesia yang ramah, profesional, dan mudah dipahami. Jaga agar penjelasan tetap ringkas dan sangat profesional.`;
+
+    try {
+      const reply = await callOllama(ollamaUrl, ollamaModel, ollamaSystemPrompt, chatHistory, message);
+      return res.json({ reply });
+    } catch (err: any) {
+      console.warn("Failed to connect to local Ollama:", err);
+      const errorMsg = language === "en"
+        ? `### ⚠️ Ollama Offline / Connection Failed\n\n` +
+          `Failed to connect to Ollama at **${ollamaUrl}** with model **${ollamaModel}**.\n\n` +
+          `**How to fix this:**\n` +
+          `1. Ensure Ollama is installed and running on your local machine.\n` +
+          `2. Start the model in your terminal:\n` +
+          `   \`\`\`bash\n` +
+          `   ollama run ${ollamaModel}\n` +
+          `   \`\`\`\n` +
+          `3. If you run Ollama in a browser environment, make sure to enable CORS by setting the environment variable before starting Ollama:\n` +
+          `   \`\`\`bash\n` +
+          `   OLLAMA_ORIGINS="*" ollama serve\n` +
+          `   \`\`\`\n\n` +
+          `---\n\n` +
+          `### 🧠 Local Metadata Analyzer Fallback\n\n` +
+          `*While Ollama is offline, we've analyzed your request instantly using our local index engine:* \n\n`
+        : `### ⚠️ Koneksi Ollama Gagal / Offline\n\n` +
+          `Gagal terhubung ke Ollama di **${ollamaUrl}** dengan model **${ollamaModel}**.\n\n` +
+          `**Cara mengatasi ini:**\n` +
+          `1. Pastikan Ollama terinstal dan berjalan di komputer lokal Anda.\n` +
+          `2. Jalankan model melalui terminal Anda:\n` +
+          `   \`\`\`bash\n` +
+          `   ollama run ${ollamaModel}\n` +
+          `   \`\`\`\n` +
+          `3. Jika Anda menjalankan Ollama di lingkungan browser, pastikan untuk mengaktifkan CORS dengan menyetel variabel lingkungan sebelum memulai Ollama:\n` +
+          `   \`\`\`bash\n` +
+          `   OLLAMA_ORIGINS="*" ollama serve\n` +
+          `   \`\`\`\n\n` +
+          `---\n\n` +
+          `### 🧠 Fallback Penganalisis AST Lokal\n\n` +
+          `*Saat Ollama offline, kami telah menganalisis permintaan Anda secara instan menggunakan mesin indeks lokal kami:* \n\n`;
+
+      const fallbackReply = localArchitectureSolver(message, analyzedFiles, language);
+      return res.json({ reply: errorMsg + fallbackReply });
+    }
+  }
 
   if (!ai) {
     // Elegant fallback to high fidelity local AST solver

@@ -55,6 +55,9 @@ export interface CodeFileMetadata {
   loc: number;
   comments: number;
   blankLines: number;
+  classes: string[];
+  functions: string[];
+  interfaces: string[];
   symbols: CodeSymbol[];
   imports: string[];
   todos: TodoItem[];

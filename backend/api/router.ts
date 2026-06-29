@@ -29,7 +29,8 @@ function localArchitectureSolver(message: string, files: any[]): string {
   const query = message.toLowerCase();
   
   const matchedFiles = files.filter(f => {
-    const nameMatch = f.name.toLowerCase().includes(query) || f.path.toLowerCase().includes(query);
+    const name = f.name || (f.path ? path.basename(f.path) : "");
+    const nameMatch = name.toLowerCase().includes(query) || (f.path && f.path.toLowerCase().includes(query));
     const contentKeywords = ["auth", "login", "db", "database", "sqlite", "api", "route", "upload", "scan", "chat", "security", "trend", "chart"];
     const keywordMatch = contentKeywords.some(kw => query.includes(kw) && (
       (f.symbols && f.symbols.some((sym: any) => sym.name.toLowerCase().includes(kw)))
@@ -45,7 +46,7 @@ function localArchitectureSolver(message: string, files: any[]): string {
     response += `- **Project Name:** AI Project Analyzer\n`;
     response += `- **Estimated Architecture Style:** Layered Service Architecture\n`;
     response += `- **Scanned File Count:** ${files.length} active files\n`;
-    response += `- **Total Code Volume:** ${files.reduce((sum, f) => sum + f.loc, 0)} lines of code\n\n`;
+    response += `- **Total Code Volume:** ${files.reduce((sum, f) => sum + (f.loc || 0), 0)} lines of code\n\n`;
     response += `#### 🏛️ Architectural Breakdown\n`;
     response += `1. **Interactive Client Component (\`/src/App.tsx\`):** High-fidelity dashboard displaying Code Explorer, Project Health, Security flags, Call graphs, trend metrics, and simulated DevOps control panels.\n`;
     response += `2. **Intelligence Backend (\`/server.ts\`):** Robust Express.js runtime executing deep heuristic AST scans, resolving circular references, serving files safely, and orchestrating fail-safes.\n`;
@@ -56,7 +57,7 @@ function localArchitectureSolver(message: string, files: any[]): string {
     response += `#### 🗄️ Database Schema & Connection Status\n\n`;
     response += `A search across local scanned modules reveals:\n\n`;
     response += `- **Main Service Handler:** \`/server.ts\` (Contains file scanning and index lookup mechanics)\n`;
-    response += `- **Environment Configuration:** DB connection variables mapped in \`.env.example\`\n`;
+    response += `- **Environment Configuration:** DB connection variables mapped in \".env.example\"\n`;
     response += `- **Identified Adapters:** SQLite embedded schema configurations.\n\n`;
     response += `The schema analyzer automatically indexes schemas, ORM models, and environment credentials. Database models are represented clearly on the main **Dashboard** under **Database Configurations**.`;
     return response;
@@ -88,12 +89,12 @@ function localArchitectureSolver(message: string, files: any[]): string {
     response += `#### 🔍 Relevant Components Mapped for "${message}"\n\n`;
     response += `Based on your request, our local analyzer identified the following modules containing matching signatures or imports:\n\n`;
     matchedFiles.slice(0, 3).forEach(f => {
-      response += `- **File:** \`${f.path}\` (${f.loc} LOC)\n`;
+      response += `- **File:** \`${f.path}\` (${f.loc || 0} LOC)\n`;
       if (f.symbols && f.symbols.length > 0) {
         response += `  - *Symbols:* ${f.symbols.slice(0, 5).map((s: any) => `\`${s.name}\` (${s.kind})`).join(", ")}\n`;
       }
       if (f.todos && f.todos.length > 0) {
-        response += `  - *Pending Tasks:* {f.todos.length} active TODOs\n`;
+        response += `  - *Pending Tasks:* ${f.todos.length} active TODOs\n`;
       }
       response += `\n`;
     });
@@ -102,14 +103,20 @@ function localArchitectureSolver(message: string, files: any[]): string {
   }
 
   response += `I ran your request against our **Local AST Analyzer Engine**.\n\n`;
-  response += `The project is a fully-integrated full-stack web application built with **React, Vite, Express, and TailwindCSS**. It consists of **${files.length} source code files** totaling **${files.reduce((sum, f) => sum + f.loc, 0)} lines of code**.\n\n`;
+  response += `The project is a fully-integrated full-stack web application built with **React, Vite, Express, and TailwindCSS**. It consists of **${files.length} source code files** totaling **${files.reduce((sum, f) => sum + (f.loc || 0), 0)} lines of code**.\n\n`;
   response += `Please try asking a specific architectural or file-level question, or check back shortly once the global Google Gemini API server spike resolves!`;
   return response;
 }
 
 apiRouter.get("/scan", (req, res) => {
   try {
-    const rootPath = process.cwd();
+    const customDir = req.query.targetDir as string;
+    const rootPath = customDir ? path.resolve(customDir) : CONFIG.SCAN_DIR;
+
+    if (!fs.existsSync(rootPath)) {
+      return res.status(404).json({ success: false, error: `Directory "${rootPath}" does not exist.` });
+    }
+
     const scanner = new ProjectScanner(rootPath);
     const { tree, flatFiles } = scanner.scan();
 
@@ -362,6 +369,7 @@ apiRouter.get("/scan", (req, res) => {
       databases,
       xref,
       architecture: "Repository Pattern & Service Layered Design",
+      targetDir: rootPath.replace(/\\/g, "/"),
       graph: {
         nodes: graphNodes,
         edges: graphEdges,
@@ -379,13 +387,46 @@ apiRouter.get("/scan", (req, res) => {
   }
 });
 
+apiRouter.get("/browse-folders", (req, res) => {
+  try {
+    const target = (req.query.path as string) || CONFIG.SCAN_DIR;
+    const resolvedPath = path.resolve(target);
+    
+    if (!fs.existsSync(resolvedPath)) {
+      return res.status(404).json({ error: `Directory "${resolvedPath}" does not exist.` });
+    }
+    
+    const stats = fs.statSync(resolvedPath);
+    if (!stats.isDirectory()) {
+      return res.status(400).json({ error: "Path is not a directory." });
+    }
+    
+    const items = fs.readdirSync(resolvedPath, { withFileTypes: true });
+    const folders = items
+      .filter(item => item.isDirectory())
+      .map(item => ({
+        name: item.name,
+        path: path.join(resolvedPath, item.name).replace(/\\/g, "/")
+      }));
+      
+    res.json({
+      currentPath: resolvedPath.replace(/\\/g, "/"),
+      parentPath: path.dirname(resolvedPath).replace(/\\/g, "/"),
+      folders: folders.sort((a, b) => a.name.localeCompare(b.name))
+    });
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 apiRouter.get("/file-content", (req, res) => {
   const filePath = req.query.path as string;
+  const customDir = req.query.targetDir as string;
   if (!filePath) {
     return res.status(400).json({ error: "File path parameter is required." });
   }
   try {
-    const rootPath = process.cwd();
+    const rootPath = customDir ? path.resolve(customDir) : CONFIG.SCAN_DIR;
     const targetPath = path.resolve(rootPath, filePath);
 
     if (!targetPath.startsWith(rootPath)) {
@@ -420,23 +461,54 @@ apiRouter.get("/trends", (req, res) => {
 });
 
 apiRouter.post("/chat", async (req, res) => {
-  const { message, chatHistory = [] } = req.body;
+  const { message, chatHistory = [], targetDir } = req.body;
 
   if (!message) {
     return res.status(400).json({ error: "Message is required." });
   }
 
-  const rootPath = process.cwd();
+  const rootPath = targetDir ? path.resolve(targetDir) : CONFIG.SCAN_DIR;
   // Quick scan to collect context
   const scanner = new ProjectScanner(rootPath);
   const { flatFiles } = scanner.scan();
-  const summary = flatFiles.map(f => {
-    return `- Path: ${f.path}\n  Size: ${f.size} bytes, Lang: ${f.language}`;
+
+  const analyzedFiles: CodeFileMetadata[] = [];
+  flatFiles.forEach(f => {
+    if (!f.isBinary) {
+      try {
+        const content = fs.readFileSync(path.join(rootPath, f.path), "utf-8");
+        const parsed = AstParser.parseFile(f.path, content, f.language);
+        analyzedFiles.push({
+          path: f.path,
+          name: path.basename(f.path),
+          extension: path.extname(f.path),
+          loc: parsed.loc,
+          comments: parsed.comments,
+          blankLines: parsed.blankLines,
+          symbols: parsed.symbols,
+          imports: parsed.imports,
+          todos: parsed.todos,
+          securityIssues: parsed.securityIssues,
+          complexity: parsed.complexity,
+          maintainability: parsed.maintainability,
+          deadCodeCandidate: [],
+          checksum: f.checksum,
+          isBinary: f.isBinary,
+          language: f.language,
+        });
+      } catch (err) {
+        // ignore
+      }
+    }
+  });
+
+  const summary = analyzedFiles.map(f => {
+    return `- Path: ${f.path}\n  Symbols: Classes: [${f.symbols.filter(s => s.kind === "Class").map(s => s.name).join(", ")}], Functions: [${f.symbols.filter(s => s.kind === "Function").map(s => s.name).join(", ")}]\n  Lines: ${f.loc}, Complexity: ${f.complexity}, Security: ${f.securityIssues.length} issues.`;
   }).join("\n");
 
   if (!ai) {
     // Elegant fallback to high fidelity local AST solver
-    const fallbackReply = localArchitectureSolver(message, flatFiles);
+    const fallbackReply = localArchitectureSolver(message, analyzedFiles);
     return res.json({ reply: fallbackReply });
   }
 
@@ -483,12 +555,12 @@ Below is the user question or command. Answer accurately, outputting high-qualit
         });
         return res.json({ reply: response.text });
       } catch (fallbackErr) {
-        const fallbackReply = localArchitectureSolver(message, flatFiles);
+        const fallbackReply = localArchitectureSolver(message, analyzedFiles);
         return res.json({ reply: fallbackReply });
       }
     }
   } catch (err) {
-    const fallbackReply = localArchitectureSolver(message, flatFiles);
+    const fallbackReply = localArchitectureSolver(message, analyzedFiles);
     res.json({ reply: fallbackReply });
   }
 });

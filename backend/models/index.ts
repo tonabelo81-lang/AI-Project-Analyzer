@@ -133,6 +133,7 @@ export interface ScanResult {
   databases: DatabaseModel[];
   xref: { [key: string]: { definedIn: string; type: string; usedBy: string[] } };
   architecture: string;
+  targetDir?: string;
   graph: {
     nodes: GraphNode[];
     edges: GraphEdge[];

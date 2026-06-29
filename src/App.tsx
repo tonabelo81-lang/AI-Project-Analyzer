@@ -66,6 +66,16 @@ export default function App() {
   const [fileLoading, setFileLoading] = useState<boolean>(false);
   const [activeTab, setActiveTab] = useState<"dashboard" | "explorer" | "graph" | "trends" | "devops">("dashboard");
   
+  // Dynamic directory scanning & server-side folder browser states
+  const [scanDir, setScanDir] = useState<string>("");
+  const [browseModalOpen, setBrowseModalOpen] = useState<boolean>(false);
+  const [browsingPath, setBrowsingPath] = useState<string>("");
+  const [browsingFolders, setBrowsingFolders] = useState<{ name: string; path: string }[]>([]);
+  const [browsingParent, setBrowsingParent] = useState<string>("");
+  const [browseError, setBrowseError] = useState<string>("");
+  const [browsingLoading, setBrowsingLoading] = useState<boolean>(false);
+  const [customPathInput, setCustomPathInput] = useState<string>("");
+
   // File Explorer tree states
   const [expandedFolders, setExpandedFolders] = useState<{ [key: string]: boolean }>({
     "src": true,
@@ -102,18 +112,26 @@ export default function App() {
     fetchTrendData();
   }, []);
 
-  const fetchScanData = async () => {
+  const fetchScanData = async (customPath?: string) => {
     setLoading(true);
     try {
-      const res = await fetch("/api/scan");
+      const activePath = customPath !== undefined ? customPath : scanDir;
+      const url = activePath ? `/api/scan?targetDir=${encodeURIComponent(activePath)}` : "/api/scan";
+      const res = await fetch(url);
       const json = await res.json();
       if (json.success) {
         setData(json);
+        if (json.targetDir) {
+          setScanDir(json.targetDir);
+          setCustomPathInput(json.targetDir);
+        }
         // Default select first file if available
         if (json.files && json.files.length > 0) {
           const mainFile = json.files.find((f: any) => f.path.includes("App.tsx") || f.path.includes("server.ts")) || json.files[0];
-          loadFileContent(mainFile.path, json.files);
+          loadFileContent(mainFile.path, json.files, json.targetDir);
         }
+      } else {
+        alert(json.error || "Scan failed.");
       }
     } catch (err) {
       console.error("Scan error:", err);
@@ -132,11 +150,14 @@ export default function App() {
     }
   };
 
-  const loadFileContent = async (filePath: string, filesPool = data?.files) => {
+  const loadFileContent = async (filePath: string, filesPool = data?.files, customPath?: string) => {
     setFileLoading(true);
     setSelectedFilePath(filePath);
     try {
-      const res = await fetch(`/api/file-content?path=${encodeURIComponent(filePath)}`);
+      const activePath = customPath !== undefined ? customPath : scanDir;
+      const url = `/api/file-content?path=${encodeURIComponent(filePath)}` + 
+        (activePath ? `&targetDir=${encodeURIComponent(activePath)}` : "");
+      const res = await fetch(url);
       const json = await res.json();
       if (json.content !== undefined) {
         setSelectedFileContent(json.content);
@@ -149,6 +170,30 @@ export default function App() {
       console.error("Error loading file:", err);
     } finally {
       setFileLoading(false);
+    }
+  };
+
+  const openDirectoryBrowser = async (startPath?: string) => {
+    setBrowsingLoading(true);
+    setBrowseError("");
+    setBrowseModalOpen(true);
+    try {
+      const url = startPath 
+        ? `/api/browse-folders?path=${encodeURIComponent(startPath)}`
+        : `/api/browse-folders`;
+      const res = await fetch(url);
+      const json = await res.json();
+      if (res.ok) {
+        setBrowsingPath(json.currentPath);
+        setBrowsingParent(json.parentPath);
+        setBrowsingFolders(json.folders || []);
+      } else {
+        setBrowseError(json.error || "Failed to list folders.");
+      }
+    } catch (err) {
+      setBrowseError("Error loading server directories.");
+    } finally {
+      setBrowsingLoading(false);
     }
   };
 
@@ -166,6 +211,7 @@ export default function App() {
         body: JSON.stringify({
           message: userMsg,
           chatHistory: chatMessages.map(m => ({ role: m.role, content: m.content })),
+          targetDir: scanDir,
         }),
       });
       const json = await res.json();
@@ -375,20 +421,26 @@ ${data.security.map((s, idx) => `
         </div>
 
         <div className="flex items-center gap-4">
-          <div className="flex items-center gap-1.5 bg-slate-900/80 px-2.5 py-1 rounded-md border border-slate-800 text-xs">
-            <GitBranch className="w-3.5 h-3.5 text-indigo-400" />
-            <span className="font-mono text-slate-300">branch:</span>
-            <span className="font-semibold text-white">main</span>
+          <div 
+            onClick={() => openDirectoryBrowser(scanDir || undefined)}
+            className="flex items-center gap-1.5 bg-slate-900/80 px-3 py-1.5 rounded-md border border-slate-800 text-xs hover:border-indigo-500 hover:bg-slate-800/40 cursor-pointer transition-all select-none"
+            title="Click to browse and change project folder"
+          >
+            <Folder className="w-3.5 h-3.5 text-indigo-400" />
+            <span className="font-mono text-slate-400">Project Dir:</span>
+            <span className="font-semibold text-indigo-300 font-mono truncate max-w-[200px]">
+              {scanDir ? scanDir.split('/').pop() || scanDir : "workspace"}
+            </span>
           </div>
 
           <button
             id="btn-trigger-scan"
-            onClick={fetchScanData}
+            onClick={() => fetchScanData()}
             disabled={loading}
             className="bg-indigo-600 hover:bg-indigo-500 disabled:bg-slate-800 text-white font-medium text-xs px-3.5 py-1.5 rounded-md flex items-center gap-2 shadow-lg shadow-indigo-600/10 hover:shadow-indigo-600/20 transition-all cursor-pointer"
           >
             <RefreshCw className={`w-3.5 h-3.5 ${loading ? "animate-spin" : ""}`} />
-            {loading ? "Analyzing Source Code..." : "Run Global Scan"}
+            {loading ? "Analyzing..." : "Re-Scan"}
           </button>
         </div>
       </header>
@@ -1528,6 +1580,150 @@ jobs:
               </div>
             </div>
           </aside>
+        </div>
+      )}
+
+      {/* SERVER FOLDER BROWSER MODAL */}
+      {browseModalOpen && (
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
+          <div className="bg-[#0b0f19] border border-slate-800 w-full max-w-2xl rounded-xl shadow-2xl overflow-hidden flex flex-col max-h-[85vh]">
+            {/* Modal Header */}
+            <div className="p-4 border-b border-slate-900 bg-[#0d1222] flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Folder className="w-5 h-5 text-indigo-400" />
+                <div>
+                  <h3 className="text-sm font-bold text-white uppercase tracking-wider">Server Folder Browser</h3>
+                  <p className="text-[10px] text-slate-400">Select any server folder path to scan and inspect code structures.</p>
+                </div>
+              </div>
+              <button 
+                onClick={() => setBrowseModalOpen(false)}
+                className="text-slate-400 hover:text-white transition-colors"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Path Input and Navigation Breadcrumbs */}
+            <div className="p-4 bg-slate-900/30 border-b border-slate-900 space-y-3">
+              <div className="flex gap-2">
+                <input
+                  type="text"
+                  value={customPathInput}
+                  onChange={(e) => setCustomPathInput(e.target.value)}
+                  placeholder="Enter custom path manually (e.g. /home/user/my-project)..."
+                  className="flex-1 bg-[#090d16] border border-slate-800 rounded-md text-xs px-3 py-2 text-slate-100 focus:outline-none focus:border-indigo-500 font-mono"
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") {
+                      openDirectoryBrowser(customPathInput);
+                    }
+                  }}
+                />
+                <button
+                  onClick={() => openDirectoryBrowser(customPathInput)}
+                  className="bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs px-3 py-2 rounded-md transition-colors"
+                >
+                  Navigate
+                </button>
+              </div>
+
+              <div className="flex items-center gap-1.5 text-xs text-slate-400 overflow-x-auto whitespace-nowrap custom-scrollbar py-1">
+                <span className="font-semibold text-slate-500 select-none">Current:</span>
+                <span className="font-mono bg-slate-900/80 px-2 py-1 border border-slate-800 text-slate-300 rounded text-[11px]">
+                  {browsingPath || "Loading..."}
+                </span>
+              </div>
+            </div>
+
+            {/* Folder list content */}
+            <div className="flex-1 overflow-y-auto p-4 space-y-2 min-h-0 custom-scrollbar bg-[#090d16]/30">
+              {browsingLoading ? (
+                <div className="py-12 flex flex-col items-center justify-center gap-3">
+                  <div className="w-6 h-6 border-2 border-indigo-500 border-t-transparent animate-spin rounded-full" />
+                  <span className="text-xs text-slate-400 font-mono">Scanning directories...</span>
+                </div>
+              ) : browseError ? (
+                <div className="p-4 border border-rose-900/30 bg-rose-950/10 text-rose-400 rounded-lg text-xs flex flex-col gap-2">
+                  <p className="font-semibold">{browseError}</p>
+                  <p className="text-slate-400 font-sans">Make sure the path is correct and accessible on the server filesystem.</p>
+                </div>
+              ) : (
+                <div className="space-y-1">
+                  {/* Parent Directory Link (..) */}
+                  {browsingParent && browsingParent !== browsingPath && (
+                    <div 
+                      onClick={() => openDirectoryBrowser(browsingParent)}
+                      className="flex items-center gap-2.5 p-2 rounded-md hover:bg-slate-800/40 cursor-pointer text-slate-400 hover:text-white transition-colors"
+                    >
+                      <ChevronRight className="w-4 h-4 text-slate-500 rotate-180" />
+                      <Folder className="w-4 h-4 text-indigo-400/60" />
+                      <span className="text-xs font-mono font-bold">..</span>
+                      <span className="text-[10px] text-slate-500">(Parent Directory)</span>
+                    </div>
+                  )}
+
+                  {browsingFolders.length === 0 ? (
+                    <div className="text-slate-500 text-center py-12 text-xs">
+                      No subfolders found in this directory.
+                    </div>
+                  ) : (
+                    browsingFolders.map((folder) => (
+                      <div 
+                        key={folder.path}
+                        className="flex items-center justify-between p-2 rounded-md hover:bg-slate-800/40 group transition-all"
+                      >
+                        <div 
+                          onClick={() => {
+                            openDirectoryBrowser(folder.path);
+                            setCustomPathInput(folder.path);
+                          }}
+                          className="flex items-center gap-2.5 cursor-pointer flex-1 min-w-0"
+                        >
+                          <ChevronRight className="w-3.5 h-3.5 text-slate-600 group-hover:text-slate-400" />
+                          <Folder className="w-4 h-4 text-indigo-400 fill-indigo-400/10" />
+                          <span className="text-xs font-mono truncate text-slate-300 group-hover:text-white">{folder.name}</span>
+                        </div>
+                        <button
+                          onClick={() => {
+                            setBrowseModalOpen(false);
+                            fetchScanData(folder.path);
+                          }}
+                          className="text-[10px] bg-indigo-600 hover:bg-indigo-500 text-white font-semibold px-2 py-1 rounded transition-colors"
+                        >
+                          Scan This
+                        </button>
+                      </div>
+                    ))
+                  )}
+                </div>
+              )}
+            </div>
+
+            {/* Modal Actions */}
+            <div className="p-4 border-t border-slate-900 bg-[#0d1222] flex justify-between items-center">
+              <span className="text-[10px] text-slate-400 font-mono">
+                Click folders to navigate or click "Scan Current" to view stats.
+              </span>
+              <div className="flex gap-2">
+                <button
+                  onClick={() => setBrowseModalOpen(false)}
+                  className="bg-slate-800 hover:bg-slate-700 text-slate-300 font-semibold text-xs px-4 py-2 rounded-md transition-colors cursor-pointer"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={() => {
+                    setBrowseModalOpen(false);
+                    fetchScanData(browsingPath);
+                  }}
+                  disabled={!browsingPath || browsingLoading}
+                  className="bg-indigo-600 hover:bg-indigo-500 disabled:bg-slate-800 disabled:text-slate-500 text-white font-semibold text-xs px-4 py-2 rounded-md shadow-lg shadow-indigo-600/15 transition-all cursor-pointer"
+                >
+                  Select & Scan Current Folder
+                </button>
+              </div>
+            </div>
+          </div>
         </div>
       )}
     </div>

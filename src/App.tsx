@@ -31,7 +31,8 @@ import {
   Sliders,
   TrendingUp,
   X,
-  Plus
+  Plus,
+  Menu
 } from "lucide-react";
 import Editor from "@monaco-editor/react";
 import {
@@ -75,6 +76,10 @@ export default function App() {
   const [browseError, setBrowseError] = useState<string>("");
   const [browsingLoading, setBrowsingLoading] = useState<boolean>(false);
   const [customPathInput, setCustomPathInput] = useState<string>("");
+
+  // Responsive mobile drawer states
+  const [explorerDrawerOpen, setExplorerDrawerOpen] = useState<boolean>(false);
+  const [chatSidebarOpen, setChatSidebarOpen] = useState<boolean>(false);
 
   // File Explorer tree states
   const [expandedFolders, setExpandedFolders] = useState<{ [key: string]: boolean }>({
@@ -365,6 +370,7 @@ ${data.security.map((s, idx) => `
                 toggleFolder(node.path);
               } else {
                 loadFileContent(node.path);
+                setExplorerDrawerOpen(false);
               }
             }}
           >
@@ -404,31 +410,40 @@ ${data.security.map((s, idx) => `
   return (
     <div className="min-h-screen bg-[#090d16] text-slate-100 font-sans flex flex-col antialiased">
       {/* Top Professional Banner */}
-      <header className="border-b border-slate-900 bg-[#0c1220] px-6 py-3 flex items-center justify-between sticky top-0 z-50 shadow-md">
-        <div className="flex items-center gap-3">
-          <div className="w-9 h-9 rounded-lg bg-indigo-600 flex items-center justify-center shadow-lg shadow-indigo-600/20">
+      <header className="border-b border-slate-900 bg-[#0c1220] px-4 sm:px-6 py-3 flex items-center justify-between sticky top-0 z-50 shadow-md">
+        <div className="flex items-center gap-2 sm:gap-3">
+          {/* Mobile Explorer Toggle */}
+          <button
+            onClick={() => setExplorerDrawerOpen(true)}
+            className="lg:hidden p-2 text-slate-400 hover:text-white rounded-md bg-slate-900/80 border border-slate-800 cursor-pointer hover:border-indigo-500 transition-all shrink-0"
+            title="Open Project Explorer"
+          >
+            <Menu className="w-4 h-4" />
+          </button>
+          
+          <div className="w-9 h-9 rounded-lg bg-indigo-600 flex items-center justify-center shadow-lg shadow-indigo-600/20 shrink-0">
             <Cpu className="w-5 h-5 text-white" />
           </div>
           <div>
             <div className="flex items-center gap-2">
-              <h1 className="text-sm font-bold tracking-tight text-white uppercase">AI Project Analyzer</h1>
-              <span className="text-[10px] bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 px-2 py-0.5 rounded-full font-mono">
+              <h1 className="text-xs sm:text-sm font-bold tracking-tight text-white uppercase truncate max-w-[120px] sm:max-w-none">AI Project Analyzer</h1>
+              <span className="text-[9px] sm:text-[10px] bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 px-1.5 sm:px-2 py-0.5 rounded-full font-mono shrink-0">
                 Enterprise v2.4
               </span>
             </div>
-            <p className="text-[11px] text-slate-400">Enterprise static code scan, dependency intelligence & context suite</p>
+            <p className="text-[10px] sm:text-[11px] text-slate-400 truncate max-w-[180px] sm:max-w-none">Enterprise static code scan, dependency intelligence & context suite</p>
           </div>
         </div>
 
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-2 sm:gap-4">
           <div 
             onClick={() => openDirectoryBrowser(scanDir || undefined)}
-            className="flex items-center gap-1.5 bg-slate-900/80 px-3 py-1.5 rounded-md border border-slate-800 text-xs hover:border-indigo-500 hover:bg-slate-800/40 cursor-pointer transition-all select-none"
+            className="flex items-center gap-1.5 bg-slate-900/80 px-2 sm:px-3 py-1.5 rounded-md border border-slate-800 text-xs hover:border-indigo-500 hover:bg-slate-800/40 cursor-pointer transition-all select-none max-w-[110px] sm:max-w-none shrink-0"
             title="Click to browse and change project folder"
           >
-            <Folder className="w-3.5 h-3.5 text-indigo-400" />
-            <span className="font-mono text-slate-400">Project Dir:</span>
-            <span className="font-semibold text-indigo-300 font-mono truncate max-w-[200px]">
+            <Folder className="w-3.5 h-3.5 text-indigo-400 shrink-0" />
+            <span className="font-mono text-slate-400 hidden md:inline">Project Dir:</span>
+            <span className="font-semibold text-indigo-300 font-mono truncate max-w-[60px] sm:max-w-[120px]">
               {scanDir ? scanDir.split('/').pop() || scanDir : "workspace"}
             </span>
           </div>
@@ -437,10 +452,19 @@ ${data.security.map((s, idx) => `
             id="btn-trigger-scan"
             onClick={() => fetchScanData()}
             disabled={loading}
-            className="bg-indigo-600 hover:bg-indigo-500 disabled:bg-slate-800 text-white font-medium text-xs px-3.5 py-1.5 rounded-md flex items-center gap-2 shadow-lg shadow-indigo-600/10 hover:shadow-indigo-600/20 transition-all cursor-pointer"
+            className="bg-indigo-600 hover:bg-indigo-500 disabled:bg-slate-800 text-white font-medium text-xs px-2.5 sm:px-3.5 py-1.5 rounded-md flex items-center gap-1.5 sm:gap-2 shadow-lg shadow-indigo-600/10 hover:shadow-indigo-600/20 transition-all cursor-pointer whitespace-nowrap shrink-0"
           >
             <RefreshCw className={`w-3.5 h-3.5 ${loading ? "animate-spin" : ""}`} />
-            {loading ? "Analyzing..." : "Re-Scan"}
+            <span className="hidden sm:inline">{loading ? "Analyzing..." : "Re-Scan"}</span>
+          </button>
+
+          {/* Mobile AI Chat Toggle */}
+          <button
+            onClick={() => setChatSidebarOpen(true)}
+            className="xl:hidden p-2 text-indigo-400 hover:text-white rounded-md bg-slate-900/80 border border-slate-800 hover:border-indigo-500 cursor-pointer transition-all shrink-0"
+            title="Open AI Chat Assistant"
+          >
+            <MessageSquare className="w-4 h-4" />
           </button>
         </div>
       </header>
@@ -475,7 +499,7 @@ ${data.security.map((s, idx) => `
       ) : (
         <div className="flex-1 flex overflow-hidden">
           {/* LEFT SIDEBAR: VS Code File Explorer */}
-          <aside className="w-64 border-r border-slate-900 bg-[#0b0f1a] flex flex-col shrink-0 overflow-y-auto">
+          <aside className="hidden lg:flex w-64 border-r border-slate-900 bg-[#0b0f1a] flex-col shrink-0 overflow-y-auto">
             <div className="p-3 border-b border-slate-900 flex items-center justify-between">
               <span className="text-[10px] font-bold text-slate-400 tracking-wider uppercase">Project Explorer</span>
               <span className="text-[10px] bg-indigo-500/10 text-indigo-400 px-1.5 py-0.5 rounded font-mono">
@@ -1476,7 +1500,7 @@ jobs:
           </main>
 
           {/* RIGHT SIDEBAR: AI Chat Panel & Context Generator */}
-          <aside className="w-80 border-l border-slate-900 bg-[#0c1220] flex flex-col shrink-0">
+          <aside className="hidden xl:flex w-80 border-l border-slate-900 bg-[#0c1220] flex-col shrink-0">
             {/* Top mini-tabs inside right sidebar */}
             <div className="p-3 border-b border-slate-900 flex items-center justify-between bg-[#0b0f1a]">
               <span className="text-[10px] font-bold text-slate-300 uppercase tracking-widest flex items-center gap-1.5">
@@ -1726,6 +1750,152 @@ jobs:
           </div>
         </div>
       )}
+
+      {/* MOBILE PROJECT EXPLORER DRAWER */}
+      <AnimatePresence>
+        {explorerDrawerOpen && (
+          <div className="fixed inset-0 z-[80] lg:hidden">
+            {/* Backdrop */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 0.6 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setExplorerDrawerOpen(false)}
+              className="absolute inset-0 bg-black/70 backdrop-blur-sm"
+            />
+            
+            {/* Slide-out Panel */}
+            <motion.aside
+              initial={{ x: "-100%" }}
+              animate={{ x: 0 }}
+              exit={{ x: "-100%" }}
+              transition={{ type: "tween", duration: 0.3, ease: "easeOut" }}
+              className="absolute top-0 bottom-0 left-0 w-72 bg-[#0b0f1a] border-r border-slate-800 flex flex-col shadow-2xl max-w-[85vw]"
+            >
+              <div className="p-4 border-b border-slate-900 bg-[#0c1220] flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Folder className="w-4 h-4 text-indigo-400" />
+                  <span className="text-xs font-bold text-white uppercase tracking-wider">Project Explorer</span>
+                </div>
+                <button
+                  onClick={() => setExplorerDrawerOpen(false)}
+                  className="p-1 text-slate-400 hover:text-white rounded-md bg-slate-900/60 border border-slate-800"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+
+              <div className="p-3 border-b border-slate-900">
+                <div className="relative">
+                  <Search className="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-2" />
+                  <input
+                    type="text"
+                    placeholder="Filter project files..."
+                    value={treeSearch}
+                    onChange={(e) => setTreeSearch(e.target.value)}
+                    className="w-full bg-slate-900/50 border border-slate-800 rounded-md text-xs pl-8 pr-3 py-1.5 focus:outline-none focus:border-indigo-500 text-slate-200 font-sans transition-all"
+                  />
+                </div>
+              </div>
+
+              <div className="flex-1 py-3 overflow-y-auto custom-scrollbar">
+                {renderFileTree(data.tree)}
+              </div>
+
+              <div className="p-4 border-t border-slate-900 bg-[#0d1222] text-[11px] text-slate-400">
+                <div className="flex items-center gap-2 mb-1.5">
+                  <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                  <span className="font-semibold text-slate-300">File Auto-Sync Active</span>
+                </div>
+                <p className="leading-relaxed text-[10px]">Changes are analyzed incrementally to feed the LLM Context database.</p>
+              </div>
+            </motion.aside>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* MOBILE AI CHAT ASSISTANT DRAWER */}
+      <AnimatePresence>
+        {chatSidebarOpen && (
+          <div className="fixed inset-0 z-[80] xl:hidden">
+            {/* Backdrop */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 0.6 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setChatSidebarOpen(false)}
+              className="absolute inset-0 bg-black/70 backdrop-blur-sm"
+            />
+            
+            {/* Slide-out Panel */}
+            <motion.aside
+              initial={{ x: "100%" }}
+              animate={{ x: 0 }}
+              exit={{ x: "100%" }}
+              transition={{ type: "tween", duration: 0.3, ease: "easeOut" }}
+              className="absolute top-0 bottom-0 right-0 w-80 bg-[#0c1220] border-l border-slate-800 flex flex-col shadow-2xl max-w-[85vw]"
+            >
+              <div className="p-4 border-b border-slate-900 bg-[#0b0f1a] flex items-center justify-between">
+                <div className="flex items-center gap-1.5">
+                  <MessageSquare className="w-4 h-4 text-indigo-400" />
+                  <span className="text-xs font-bold text-white uppercase tracking-wider">AI Assistant</span>
+                </div>
+                <button
+                  onClick={() => setChatSidebarOpen(false)}
+                  className="p-1 text-slate-400 hover:text-white rounded-md bg-slate-900/60 border border-slate-800"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+
+              {/* Chat messages */}
+              <div className="flex-1 overflow-y-auto p-4 space-y-3 custom-scrollbar flex flex-col min-h-0 bg-[#090d16]/30">
+                {chatMessages.map((msg, index) => (
+                  <div
+                    key={index}
+                    className={`flex flex-col max-w-[90%] rounded-lg p-2.5 text-xs leading-relaxed ${
+                      msg.role === "user"
+                        ? "bg-indigo-600 text-white self-end"
+                        : "bg-[#0b101c] border border-slate-900 text-slate-200 self-start font-mono"
+                    }`}
+                  >
+                    <p className="whitespace-pre-wrap">{msg.content}</p>
+                  </div>
+                ))}
+                {chatLoading && (
+                  <div className="bg-[#0b101c] border border-slate-900 text-slate-400 rounded-lg p-2.5 text-xs self-start flex items-center gap-2">
+                    <span className="w-1.5 h-1.5 bg-indigo-500 rounded-full animate-bounce" />
+                    <span className="w-1.5 h-1.5 bg-indigo-500 rounded-full animate-bounce [animation-delay:0.2s]" />
+                    <span className="w-1.5 h-1.5 bg-indigo-500 rounded-full animate-bounce [animation-delay:0.4s]" />
+                  </div>
+                )}
+              </div>
+
+              {/* Chat input */}
+              <div className="p-3 border-t border-slate-900 bg-[#0b0f1a] flex gap-2">
+                <input
+                  id="input-ai-chat-drawer"
+                  type="text"
+                  placeholder="Ask AI about this codebase..."
+                  value={chatInput}
+                  onChange={(e) => setChatInput(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") sendChatMessage();
+                  }}
+                  className="flex-1 bg-[#090d16] border border-slate-800 rounded-md text-xs px-3 py-2 text-slate-100 focus:outline-none focus:border-indigo-500 font-sans"
+                />
+                <button
+                  onClick={sendChatMessage}
+                  disabled={chatLoading}
+                  className="bg-indigo-600 hover:bg-indigo-500 disabled:bg-slate-850 text-white p-2 rounded-md transition-colors cursor-pointer shrink-0"
+                >
+                  <Send className="w-4 h-4" />
+                </button>
+              </div>
+            </motion.aside>
+          </div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

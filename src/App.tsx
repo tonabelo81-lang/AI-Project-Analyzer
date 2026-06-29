@@ -426,12 +426,12 @@ ${data.security.map((s, idx) => `
           </div>
           <div>
             <div className="flex items-center gap-2">
-              <h1 className="text-xs sm:text-sm font-bold tracking-tight text-white uppercase truncate max-w-[120px] sm:max-w-none">AI Project Analyzer</h1>
+              <h1 className="text-xs sm:text-sm font-bold tracking-tight text-white uppercase truncate max-w-[120px] sm:max-w-none">Penganalisis Proyek AI</h1>
               <span className="text-[9px] sm:text-[10px] bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 px-1.5 sm:px-2 py-0.5 rounded-full font-mono shrink-0">
                 Enterprise v2.4
               </span>
             </div>
-            <p className="text-[10px] sm:text-[11px] text-slate-400 truncate max-w-[180px] sm:max-w-none">Enterprise static code scan, dependency intelligence & context suite</p>
+            <p className="text-[10px] sm:text-[11px] text-slate-400 truncate max-w-[180px] sm:max-w-none">Pemindaian kode statis, kecerdasan dependensi & rangkaian konteks Enterprise</p>
           </div>
         </div>
 
@@ -439,10 +439,10 @@ ${data.security.map((s, idx) => `
           <div 
             onClick={() => openDirectoryBrowser(scanDir || undefined)}
             className="flex items-center gap-1.5 bg-slate-900/80 px-2 sm:px-3 py-1.5 rounded-md border border-slate-800 text-xs hover:border-indigo-500 hover:bg-slate-800/40 cursor-pointer transition-all select-none max-w-[110px] sm:max-w-none shrink-0"
-            title="Click to browse and change project folder"
+            title="Klik untuk menelusuri dan mengubah folder proyek"
           >
             <Folder className="w-3.5 h-3.5 text-indigo-400 shrink-0" />
-            <span className="font-mono text-slate-400 hidden md:inline">Project Dir:</span>
+            <span className="font-mono text-slate-400 hidden md:inline">Dir Proyek:</span>
             <span className="font-semibold text-indigo-300 font-mono truncate max-w-[60px] sm:max-w-[120px]">
               {scanDir ? scanDir.split('/').pop() || scanDir : "workspace"}
             </span>
@@ -455,7 +455,7 @@ ${data.security.map((s, idx) => `
             className="bg-indigo-600 hover:bg-indigo-500 disabled:bg-slate-800 text-white font-medium text-xs px-2.5 sm:px-3.5 py-1.5 rounded-md flex items-center gap-1.5 sm:gap-2 shadow-lg shadow-indigo-600/10 hover:shadow-indigo-600/20 transition-all cursor-pointer whitespace-nowrap shrink-0"
           >
             <RefreshCw className={`w-3.5 h-3.5 ${loading ? "animate-spin" : ""}`} />
-            <span className="hidden sm:inline">{loading ? "Analyzing..." : "Re-Scan"}</span>
+            <span className="hidden sm:inline">{loading ? "Menganalisis..." : "Pindai Ulang"}</span>
           </button>
 
           {/* Mobile AI Chat Toggle */}
@@ -476,24 +476,24 @@ ${data.security.map((s, idx) => `
             <Cpu className="w-6 h-6 text-indigo-400 absolute" />
           </div>
           <h3 className="text-sm font-semibold text-white tracking-wider uppercase mb-2 animate-pulse">
-            Deep Analyzing Project Source Code
+            Menganalisis Kode Sumber Proyek Secara Mendalam
           </h3>
           <p className="text-xs text-slate-400 max-w-md text-center leading-relaxed">
-            Parsing symbol files, building token trees, mapping circular dependency routes, estimating architecture patterns, and generating vector database candidates.
+            Mengurai file simbol, membangun pohon token, memetakan rute dependensi melingkar, memperkirakan pola arsitektur, dan menghasilkan kandidat database vektor.
           </p>
         </div>
       ) : !data ? (
         <div className="flex-1 flex flex-col items-center justify-center bg-[#090d16] p-8 text-center">
           <AlertTriangle className="w-12 h-12 text-rose-500 mb-4" />
-          <h2 className="text-sm font-semibold text-white mb-2 uppercase tracking-wide">Analysis Engine Failed</h2>
+          <h2 className="text-sm font-semibold text-white mb-2 uppercase tracking-wide">Mesin Analisis Gagal</h2>
           <p className="text-xs text-slate-400 max-w-sm mb-4">
-            Could not fetch scan analytics from local server database. Ensure server.ts background engine is operational.
+            Tidak dapat mengambil analitik pemindaian dari database server lokal. Pastikan mesin latar belakang server.ts berfungsi dengan baik.
           </p>
           <button
             onClick={fetchScanData}
             className="bg-indigo-600 text-white text-xs px-4 py-2 rounded hover:bg-indigo-500 cursor-pointer"
           >
-            Retry Scan Process
+            Ulangi Proses Pemindaian
           </button>
         </div>
       ) : (
@@ -501,9 +501,9 @@ ${data.security.map((s, idx) => `
           {/* LEFT SIDEBAR: VS Code File Explorer */}
           <aside className="hidden lg:flex w-64 border-r border-slate-900 bg-[#0b0f1a] flex-col shrink-0 overflow-y-auto">
             <div className="p-3 border-b border-slate-900 flex items-center justify-between">
-              <span className="text-[10px] font-bold text-slate-400 tracking-wider uppercase">Project Explorer</span>
+              <span className="text-[10px] font-bold text-slate-400 tracking-wider uppercase">Penjelajah Proyek</span>
               <span className="text-[10px] bg-indigo-500/10 text-indigo-400 px-1.5 py-0.5 rounded font-mono">
-                {data.stats.totalFiles} Files
+                {data.stats.totalFiles} File
               </span>
             </div>
 
@@ -512,7 +512,7 @@ ${data.security.map((s, idx) => `
                 <Search className="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-2" />
                 <input
                   type="text"
-                  placeholder="Filter project files..."
+                  placeholder="Filter file proyek..."
                   value={treeSearch}
                   onChange={(e) => setTreeSearch(e.target.value)}
                   className="w-full bg-slate-900/50 border border-slate-800 rounded-md text-xs pl-8 pr-3 py-1.5 focus:outline-none focus:border-indigo-500 text-slate-200 font-sans transition-all"
@@ -527,9 +527,9 @@ ${data.security.map((s, idx) => `
             <div className="p-3 border-t border-slate-900 bg-[#0d1222] text-[11px] text-slate-400">
               <div className="flex items-center gap-2 mb-1.5">
                 <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-                <span className="font-semibold text-slate-300">File Auto-Sync Active</span>
+                <span className="font-semibold text-slate-300">Sinkronisasi Otomatis Aktif</span>
               </div>
-              <p className="leading-relaxed text-[10px]">Changes are analyzed incrementally to feed the LLM Context database.</p>
+              <p className="leading-relaxed text-[10px]">Perubahan dianalisis secara inkremental untuk memperbarui basis data Konteks LLM.</p>
             </div>
           </aside>
 
@@ -538,11 +538,11 @@ ${data.security.map((s, idx) => `
             {/* Tabs Navigation */}
             <div className="flex border-b border-slate-900 bg-[#0b0f1a] px-4">
               {[
-                { id: "dashboard", label: "Dashboard", icon: Activity },
-                { id: "explorer", label: "Interactive Code Explorer", icon: Code },
-                { id: "graph", label: "Dependency Map", icon: Network },
-                { id: "trends", label: "Trend Progression", icon: TrendingUp },
-                { id: "devops", label: "CI/CD & DevOps Integration", icon: Sliders },
+                { id: "dashboard", label: "Dasbor", icon: Activity },
+                { id: "explorer", label: "Penjelajah Kode Interaktif", icon: Code },
+                { id: "graph", label: "Peta Dependensi", icon: Network },
+                { id: "trends", label: "Perkembangan Tren", icon: TrendingUp },
+                { id: "devops", label: "Integrasi CI/CD & DevOps", icon: Sliders },
               ].map(tab => {
                 const Icon = tab.icon;
                 const active = activeTab === tab.id;
@@ -582,9 +582,9 @@ ${data.security.map((s, idx) => `
                         </div>
                         <div>
                           <div className="flex items-center justify-between mb-2">
-                            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Project Health Score</span>
+                            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Skor Kesehatan Proyek</span>
                             <span className="text-xs bg-emerald-500/10 text-emerald-400 px-2 py-0.5 rounded-full font-semibold">
-                              Stable
+                              Stabil
                             </span>
                           </div>
                           <div className="flex items-baseline gap-2">
@@ -599,7 +599,7 @@ ${data.security.map((s, idx) => `
                               style={{ width: `${data.stats.healthScore}%` }}
                             />
                           </div>
-                          <p className="text-[10px] text-slate-400 mt-2">Deducted from circular imports and critical safety levels.</p>
+                          <p className="text-[10px] text-slate-400 mt-2">Dikurangi berdasarkan impor melingkar dan tingkat keamanan kritis.</p>
                         </div>
                       </div>
 
@@ -607,9 +607,9 @@ ${data.security.map((s, idx) => `
                       <div className="bg-[#0c1220] border border-slate-900 rounded-xl p-5 relative overflow-hidden flex flex-col justify-between shadow-lg">
                         <div>
                           <div className="flex items-center justify-between mb-2">
-                            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Technical Debt Index</span>
+                            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Indeks Utang Teknis</span>
                             <span className="text-xs bg-amber-500/10 text-amber-400 px-2 py-0.5 rounded-full font-semibold">
-                              Low Risk
+                              Risiko Rendah
                             </span>
                           </div>
                           <div className="flex items-baseline gap-2">
@@ -618,9 +618,9 @@ ${data.security.map((s, idx) => `
                         </div>
                         <div className="mt-4">
                           <div className="flex justify-between text-[10px] text-slate-400 mb-1">
-                            <span>Estimated Resolution:</span>
+                            <span>Estimasi Penyelesaian:</span>
                             <span className="font-semibold text-white">
-                              {Math.round(data.stats.technicalDebtScore * 0.4)} Hours
+                              {Math.round(data.stats.technicalDebtScore * 0.4)} Jam
                             </span>
                           </div>
                           <div className="w-full bg-slate-800 h-1.5 rounded-full overflow-hidden">
@@ -636,28 +636,28 @@ ${data.security.map((s, idx) => `
                       <div className="bg-[#0c1220] border border-slate-900 rounded-xl p-5 relative overflow-hidden flex flex-col justify-between shadow-lg">
                         <div>
                           <div className="flex items-center justify-between mb-2">
-                            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Security Flags</span>
+                            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Bendera Keamanan</span>
                             {data.stats.securityFindings > 0 ? (
                               <span className="text-xs bg-rose-500/10 text-rose-400 px-2 py-0.5 rounded-full font-semibold animate-pulse">
-                                Requires Review
+                                Butuh Tinjauan
                               </span>
                             ) : (
                               <span className="text-xs bg-emerald-500/10 text-emerald-400 px-2 py-0.5 rounded-full font-semibold">
-                                Secure
+                                Aman
                               </span>
                             )}
                           </div>
                           <div className="flex items-baseline gap-2">
                             <span className="text-4xl font-extrabold text-white tracking-tight">{data.stats.securityFindings}</span>
-                            <span className="text-xs text-slate-400">Issues Flagged</span>
+                            <span className="text-xs text-slate-400">Masalah Ditandai</span>
                           </div>
                         </div>
                         <div className="mt-4 flex gap-2">
                           <span className="text-[10px] bg-rose-500/10 text-rose-400 border border-rose-500/20 px-2 py-0.5 rounded">
-                            {data.security.filter(s => s.severity === "critical").length} Critical
+                            {data.security.filter(s => s.severity === "critical").length} Kritis
                           </span>
                           <span className="text-[10px] bg-amber-500/10 text-amber-400 border border-amber-500/20 px-2 py-0.5 rounded">
-                            {data.security.filter(s => s.severity === "warning").length} Warning
+                            {data.security.filter(s => s.severity === "warning").length} Peringatan
                           </span>
                         </div>
                       </div>
@@ -666,9 +666,9 @@ ${data.security.map((s, idx) => `
                       <div className="bg-[#0c1220] border border-slate-900 rounded-xl p-5 relative overflow-hidden flex flex-col justify-between shadow-lg">
                         <div>
                           <div className="flex items-center justify-between mb-2">
-                            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Code Maintainability</span>
+                            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Kemudahan Pemeliharaan</span>
                             <span className="text-xs bg-indigo-500/10 text-indigo-400 px-2 py-0.5 rounded-full font-semibold">
-                              A- Grade
+                              Nilai A-
                             </span>
                           </div>
                           <div className="flex items-baseline gap-2">
@@ -677,7 +677,7 @@ ${data.security.map((s, idx) => `
                           </div>
                         </div>
                         <div className="mt-4">
-                          <p className="text-[10px] text-slate-400">Average maintainability index across all compiled modules.</p>
+                          <p className="text-[10px] text-slate-400">Rata-rata indeks kemudahan pemeliharaan di semua modul yang dikompilasi.</p>
                         </div>
                       </div>
                     </div>
@@ -687,29 +687,29 @@ ${data.security.map((s, idx) => `
                       {/* Left: General Stats & Technologies */}
                       <div className="bg-[#0c1220] border border-slate-900 rounded-xl p-5 shadow-lg space-y-6">
                         <div>
-                          <h3 className="text-xs font-bold uppercase text-slate-400 tracking-wider mb-4">Volume Statistics</h3>
+                          <h3 className="text-xs font-bold uppercase text-slate-400 tracking-wider mb-4">Statistik Volume</h3>
                           <div className="grid grid-cols-2 gap-4">
                             <div className="bg-[#090d16] border border-slate-950 p-3 rounded-lg text-center">
-                              <span className="text-[10px] text-slate-400 uppercase">Lines of Code</span>
+                              <span className="text-[10px] text-slate-400 uppercase">Baris Kode</span>
                               <p className="text-lg font-bold text-white mt-1">{data.stats.totalLOC.toLocaleString()}</p>
                             </div>
                             <div className="bg-[#090d16] border border-slate-950 p-3 rounded-lg text-center">
-                              <span className="text-[10px] text-slate-400 uppercase">Classes</span>
+                              <span className="text-[10px] text-slate-400 uppercase">Kelas</span>
                               <p className="text-lg font-bold text-white mt-1">{data.stats.totalClasses}</p>
                             </div>
                             <div className="bg-[#090d16] border border-slate-950 p-3 rounded-lg text-center">
-                              <span className="text-[10px] text-slate-400 uppercase">Functions</span>
+                              <span className="text-[10px] text-slate-400 uppercase">Fungsi</span>
                               <p className="text-lg font-bold text-white mt-1">{data.stats.totalFunctions}</p>
                             </div>
                             <div className="bg-[#090d16] border border-slate-950 p-3 rounded-lg text-center">
-                              <span className="text-[10px] text-slate-400 uppercase">Dead Code Candidates</span>
+                              <span className="text-[10px] text-slate-400 uppercase">Kandidat Kode Mati</span>
                               <p className="text-lg font-bold text-rose-400 mt-1">{data.stats.deadCodeCount}</p>
                             </div>
                           </div>
                         </div>
 
                         <div>
-                          <h3 className="text-xs font-bold uppercase text-slate-400 tracking-wider mb-3">Detected Technologies</h3>
+                          <h3 className="text-xs font-bold uppercase text-slate-400 tracking-wider mb-3">Teknologi Terdeteksi</h3>
                           <div className="flex flex-wrap gap-2">
                             {data.technologies.map(tech => (
                               <span key={tech} className="bg-slate-900 border border-slate-800 text-slate-300 text-[11px] px-3 py-1 rounded-md font-mono flex items-center gap-1.5">
@@ -721,15 +721,15 @@ ${data.security.map((s, idx) => `
                         </div>
 
                         <div>
-                          <h3 className="text-xs font-bold uppercase text-slate-400 tracking-wider mb-3">System Architecture</h3>
+                          <h3 className="text-xs font-bold uppercase text-slate-400 tracking-wider mb-3">Arsitektur Sistem</h3>
                           <div className="bg-indigo-950/10 border border-indigo-900/20 p-4 rounded-xl">
                             <div className="flex items-center gap-2 mb-2 text-indigo-400 text-xs font-bold">
                               <Layers className="w-4 h-4" />
-                              Estimated Architectural Style
+                              Estimasi Gaya Arsitektur
                             </div>
                             <p className="text-xs font-semibold text-white mb-1">{data.architecture}</p>
                             <p className="text-[11px] text-slate-400 leading-relaxed">
-                              Evaluated from source code structures, naming patterns, file tree nesting depth, and dependencies setup.
+                              Dievaluasi dari struktur kode sumber, pola penamaan, kedalaman sarang pohon file, dan pengaturan dependensi.
                             </p>
                           </div>
                         </div>
@@ -738,9 +738,9 @@ ${data.security.map((s, idx) => `
                       {/* Center: List of TODO / Priorities */}
                       <div className="bg-[#0c1220] border border-slate-900 rounded-xl p-5 shadow-lg flex flex-col h-[400px]">
                         <div className="flex items-center justify-between mb-4">
-                          <h3 className="text-xs font-bold uppercase text-slate-400 tracking-wider">Unresolved TODO / Task priorities</h3>
+                          <h3 className="text-xs font-bold uppercase text-slate-400 tracking-wider">Prioritas Tugas / TODO Belum Selesai</h3>
                           <span className="text-[10px] bg-amber-500/10 text-amber-400 px-2 py-0.5 rounded-full">
-                            {data.todos.length} Active Tasks
+                            {data.todos.length} Tugas Aktif
                           </span>
                         </div>
 
@@ -748,7 +748,7 @@ ${data.security.map((s, idx) => `
                           {data.todos.length === 0 ? (
                             <div className="h-full flex flex-col items-center justify-center text-center text-slate-500">
                               <CheckCircle className="w-8 h-8 text-emerald-500 mb-2" />
-                              <p className="text-xs font-medium">Clean slate! No TODOs or unresolved tasks found.</p>
+                              <p className="text-xs font-medium">Semua bersih! Tidak ada TODO atau tugas tertunda yang ditemukan.</p>
                             </div>
                           ) : (
                             data.todos.map((todo, idx) => (
@@ -780,9 +780,9 @@ ${data.security.map((s, idx) => `
                       {/* Right: Security & Critical Issues list */}
                       <div className="bg-[#0c1220] border border-slate-900 rounded-xl p-5 shadow-lg flex flex-col h-[400px]">
                         <div className="flex items-center justify-between mb-4">
-                          <h3 className="text-xs font-bold uppercase text-slate-400 tracking-wider">Security Vulnerability Review</h3>
+                          <h3 className="text-xs font-bold uppercase text-slate-400 tracking-wider">Tinjauan Kerentanan Keamanan</h3>
                           <span className="text-[10px] bg-rose-500/10 text-rose-400 px-2 py-0.5 rounded-full font-mono">
-                            {data.security.length} Warnings
+                            {data.security.length} Peringatan
                           </span>
                         </div>
 
@@ -790,7 +790,7 @@ ${data.security.map((s, idx) => `
                           {data.security.length === 0 ? (
                             <div className="h-full flex flex-col items-center justify-center text-center text-slate-500">
                               <Shield className="w-8 h-8 text-emerald-500 mb-2" />
-                              <p className="text-xs font-medium">All clear! No hardcoded secrets or unsafe triggers identified.</p>
+                              <p className="text-xs font-medium">Semua aman! Tidak ada rahasia atau pemicu tidak aman yang teridentifikasi.</p>
                             </div>
                           ) : (
                             data.security.map((sec, idx) => (
@@ -821,11 +821,11 @@ ${data.security.map((s, idx) => `
                       <div className="bg-[#0c1220] border border-slate-900 rounded-xl p-5 shadow-lg">
                         <h3 className="text-xs font-bold uppercase text-slate-400 tracking-wider mb-4 flex items-center gap-2">
                           <Terminal className="w-4 h-4 text-indigo-400" />
-                          Discovered Rest API Maps
+                          Peta API REST Terdeteksi
                         </h3>
                         <div className="space-y-2.5 max-h-[250px] overflow-y-auto pr-1 custom-scrollbar">
                           {data.apis.length === 0 ? (
-                            <p className="text-xs text-slate-500 text-center py-8">No server-side rest API endpoints detected in this project.</p>
+                            <p className="text-xs text-slate-500 text-center py-8">Tidak ada endpoint API REST sisi server yang terdeteksi dalam proyek ini.</p>
                           ) : (
                             data.apis.map((api, idx) => (
                               <div key={idx} className="bg-[#090d16] p-2.5 border border-slate-950 rounded-lg flex items-center justify-between">
@@ -847,11 +847,11 @@ ${data.security.map((s, idx) => `
                       <div className="bg-[#0c1220] border border-slate-900 rounded-xl p-5 shadow-lg">
                         <h3 className="text-xs font-bold uppercase text-slate-400 tracking-wider mb-4 flex items-center gap-2">
                           <Network className="w-4 h-4 text-indigo-400" />
-                          Database Configuration & Entity Maps
+                          Konfigurasi Database & Peta Entitas
                         </h3>
                         <div className="space-y-2.5 max-h-[250px] overflow-y-auto pr-1 custom-scrollbar">
                           {data.databases.length === 0 ? (
-                            <p className="text-xs text-slate-500 text-center py-8">No configured DB pools or models mapped.</p>
+                            <p className="text-xs text-slate-500 text-center py-8">Tidak ada pool DB atau model yang terkonfigurasi.</p>
                           ) : (
                             data.databases.map((db, idx) => (
                               <div key={idx} className="bg-[#090d16] p-3 border border-slate-950 rounded-lg">
@@ -1138,7 +1138,7 @@ ${data.security.map((s, idx) => `
                               <Search className="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-2" />
                               <input
                                 type="text"
-                                placeholder="Search map nodes..."
+                                placeholder="Cari node peta..."
                                 value={graphSearch}
                                 onChange={(e) => setGraphSearch(e.target.value)}
                                 className="w-full bg-slate-900/50 border border-slate-850 rounded text-[11px] pl-8 pr-3 py-1.5 focus:outline-none focus:border-indigo-500 text-slate-200"
@@ -1148,31 +1148,31 @@ ${data.security.map((s, idx) => `
                             {selectedGraphNode ? (
                               <div className="space-y-3">
                                 <div className="border-b border-slate-900 pb-2 flex justify-between items-center">
-                                  <span className="text-[10px] font-bold text-indigo-400 uppercase">Selected Module</span>
+                                  <span className="text-[10px] font-bold text-indigo-400 uppercase">Modul Terpilih</span>
                                   <button
                                     onClick={() => setSelectedGraphNode(null)}
                                     className="text-slate-500 hover:text-white text-[10px]"
                                   >
-                                    Clear Trace
+                                    Bersihkan Jejak
                                   </button>
                                 </div>
 
                                 <div className="space-y-1.5">
                                   <h4 className="text-xs font-bold text-white font-mono break-all">{selectedGraphNode}</h4>
                                   <p className="text-[11px] text-slate-400">
-                                    Size / Volume: <span className="text-white font-semibold font-mono">
-                                      {data.files.find(f => f.path === selectedGraphNode)?.loc || 12} lines
+                                    Ukuran / Volume: <span className="text-white font-semibold font-mono">
+                                      {data.files.find(f => f.path === selectedGraphNode)?.loc || 12} baris
                                     </span>
                                   </p>
                                   <p className="text-[11px] text-slate-400 font-mono">
-                                    Maintainability: <span className="text-emerald-400">
+                                    Pemeliharaan: <span className="text-emerald-400">
                                       {data.files.find(f => f.path === selectedGraphNode)?.maintainability || 95}/100
                                     </span>
                                   </p>
                                 </div>
 
                                 <div className="border-t border-slate-900 pt-2 space-y-1.5">
-                                  <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest block">Direct Imports</span>
+                                  <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest block">Impor Langsung</span>
                                   <div className="space-y-1 text-[10px] font-mono text-indigo-300">
                                     {data.graph.edges
                                       .filter(e => e.source === selectedGraphNode)
@@ -1182,7 +1182,7 @@ ${data.security.map((s, idx) => `
                                         </div>
                                       ))}
                                     {data.graph.edges.filter(e => e.source === selectedGraphNode).length === 0 && (
-                                      <p className="text-slate-500 italic text-[10px]">No internal dependencies imported.</p>
+                                      <p className="text-slate-500 italic text-[10px]">Tidak ada dependensi internal yang diimpor.</p>
                                     )}
                                   </div>
                                 </div>
@@ -1190,25 +1190,25 @@ ${data.security.map((s, idx) => `
                             ) : (
                               <div className="text-center py-12 text-slate-500 text-[11px]">
                                 <Network className="w-8 h-8 mx-auto text-slate-700 mb-2" />
-                                Click a node on the graph map to trace direct imports.
+                                Klik node pada peta grafis untuk melacak impor langsung.
                               </div>
                             )}
                           </div>
 
                           <div className="border-t border-slate-900 pt-3">
-                            <span className="text-[9px] font-bold text-slate-400 uppercase block mb-1.5">Export File Maps</span>
+                            <span className="text-[9px] font-bold text-slate-400 uppercase block mb-1.5">Ekspor Peta File</span>
                             <div className="grid grid-cols-2 gap-1.5">
                               <button
                                 onClick={() => triggerDownload("dependency_graph.json", JSON.stringify(data.graph, null, 2))}
                                 className="bg-slate-900 hover:bg-slate-850 text-white border border-slate-800 rounded py-1 px-2 text-[10px] font-semibold text-center cursor-pointer transition-colors"
                               >
-                                Export Graph
+                                Ekspor Grafis
                               </button>
                               <button
                                 onClick={() => triggerDownload("symbol_index.json", JSON.stringify(data.symbols, null, 2))}
                                 className="bg-slate-900 hover:bg-slate-850 text-white border border-slate-800 rounded py-1 px-2 text-[10px] font-semibold text-center cursor-pointer transition-colors"
                               >
-                                Export Symbols
+                                Ekspor Simbol
                               </button>
                             </div>
                           </div>
@@ -1229,8 +1229,8 @@ ${data.security.map((s, idx) => `
                       {/* Trend 1: Code Health & Technical Debt */}
                       <div className="bg-[#0c1220] border border-slate-900 rounded-xl p-5 shadow-lg space-y-3">
                         <div>
-                          <h3 className="text-xs font-bold uppercase text-slate-400 tracking-wider">Health vs Technical Debt Progression</h3>
-                          <p className="text-[11px] text-slate-400">Shows long term health index stability relative to refactoring timelines.</p>
+                          <h3 className="text-xs font-bold uppercase text-slate-400 tracking-wider">Perkembangan Kesehatan vs Utang Teknis</h3>
+                          <p className="text-[11px] text-slate-400">Menampilkan stabilitas indeks kesehatan jangka panjang relatif terhadap linimasa pemfaktoran ulang.</p>
                         </div>
                         <div className="h-[250px] w-full">
                           <ResponsiveContainer width="100%" height="100%">
@@ -1250,8 +1250,8 @@ ${data.security.map((s, idx) => `
                               <YAxis stroke="#94a3b8" fontSize={10} />
                               <Tooltip contentStyle={{ background: "#0f172a", borderColor: "#334155" }} />
                               <Legend wrapperStyle={{ fontSize: 11 }} />
-                              <Area type="monotone" dataKey="healthScore" name="Health Score" stroke="#6366f1" fillOpacity={1} fill="url(#colorHealth)" />
-                              <Area type="monotone" dataKey="technicalDebtScore" name="Tech Debt %" stroke="#f59e0b" fillOpacity={1} fill="url(#colorDebt)" />
+                              <Area type="monotone" dataKey="healthScore" name="Skor Kesehatan" stroke="#6366f1" fillOpacity={1} fill="url(#colorHealth)" />
+                              <Area type="monotone" dataKey="technicalDebtScore" name="Persentase Utang Teknis" stroke="#f59e0b" fillOpacity={1} fill="url(#colorDebt)" />
                             </AreaChart>
                           </ResponsiveContainer>
                         </div>
@@ -1260,8 +1260,8 @@ ${data.security.map((s, idx) => `
                       {/* Trend 2: Volume progression */}
                       <div className="bg-[#0c1220] border border-slate-900 rounded-xl p-5 shadow-lg space-y-3">
                         <div>
-                          <h3 className="text-xs font-bold uppercase text-slate-400 tracking-wider">Volume Growth Index (Lines of Code)</h3>
-                          <p className="text-[11px] text-slate-400">Aggregates volume index variations across commits history.</p>
+                          <h3 className="text-xs font-bold uppercase text-slate-400 tracking-wider">Indeks Pertumbuhan Volume (Baris Kode)</h3>
+                          <p className="text-[11px] text-slate-400">Menggabungkan variasi indeks volume di sepanjang riwayat commit.</p>
                         </div>
                         <div className="h-[250px] w-full">
                           <ResponsiveContainer width="100%" height="100%">
@@ -1271,8 +1271,8 @@ ${data.security.map((s, idx) => `
                               <YAxis stroke="#94a3b8" fontSize={10} />
                               <Tooltip contentStyle={{ background: "#0f172a", borderColor: "#334155" }} />
                               <Legend wrapperStyle={{ fontSize: 11 }} />
-                              <Line type="monotone" dataKey="totalLOC" name="Total LOC" stroke="#10b981" strokeWidth={2} activeDot={{ r: 6 }} />
-                              <Line type="monotone" dataKey="todosCount" name="Open TODOs" stroke="#f43f5e" strokeWidth={2} />
+                              <Line type="monotone" dataKey="totalLOC" name="Total Baris Kode" stroke="#10b981" strokeWidth={2} activeDot={{ r: 6 }} />
+                              <Line type="monotone" dataKey="todosCount" name="TODO Terbuka" stroke="#f43f5e" strokeWidth={2} />
                             </LineChart>
                           </ResponsiveContainer>
                         </div>
@@ -1281,17 +1281,17 @@ ${data.security.map((s, idx) => `
 
                     {/* Historical Logs List */}
                     <div className="bg-[#0c1220] border border-slate-900 rounded-xl p-5 shadow-lg">
-                      <h3 className="text-xs font-bold uppercase text-slate-400 tracking-wider mb-4">Scan History Commit Log</h3>
+                      <h3 className="text-xs font-bold uppercase text-slate-400 tracking-wider mb-4">Log Commit Riwayat Pemindaian</h3>
                       <div className="overflow-x-auto">
                         <table className="w-full text-left border-collapse text-xs">
                           <thead>
                             <tr className="border-b border-slate-900 text-slate-400">
-                              <th className="py-2.5 px-3">Revision</th>
-                              <th className="py-2.5 px-3">Scan Date</th>
-                              <th className="py-2.5 px-3">Health Score</th>
-                              <th className="py-2.5 px-3">Total Lines</th>
-                              <th className="py-2.5 px-3">Security Warnings</th>
-                              <th className="py-2.5 px-3">Refactor Priority</th>
+                              <th className="py-2.5 px-3">Revisi</th>
+                              <th className="py-2.5 px-3">Tanggal Pindai</th>
+                              <th className="py-2.5 px-3">Skor Kesehatan</th>
+                              <th className="py-2.5 px-3">Total Baris</th>
+                              <th className="py-2.5 px-3">Peringatan Keamanan</th>
+                              <th className="py-2.5 px-3">Prioritas Refaktor</th>
                             </tr>
                           </thead>
                           <tbody>
@@ -1302,16 +1302,16 @@ ${data.security.map((s, idx) => `
                                 <td className="py-2.5 px-3">
                                   <span className="font-semibold text-emerald-400">{t.healthScore}/100</span>
                                 </td>
-                                <td className="py-2.5 px-3 font-mono text-slate-400">{t.totalLOC} lines</td>
+                                <td className="py-2.5 px-3 font-mono text-slate-400">{t.totalLOC} baris</td>
                                 <td className="py-2.5 px-3">
                                   <span className={`px-2 py-0.5 rounded ${
                                     t.securityFindings > 2 ? "bg-rose-500/10 text-rose-400" : "bg-emerald-500/10 text-emerald-400"
                                   }`}>
-                                    {t.securityFindings} Findings
+                                    {t.securityFindings} Temuan
                                   </span>
                                 </td>
                                 <td className="py-2.5 px-3 text-slate-400">
-                                  {t.healthScore > 85 ? "Low priority" : "Urgent refactor required"}
+                                  {t.healthScore > 85 ? "Prioritas rendah" : "Pemfaktoran ulang mendesak"}
                                 </td>
                               </tr>
                             ))}
@@ -1334,28 +1334,28 @@ ${data.security.map((s, idx) => `
                       <div className="bg-[#0c1220] border border-slate-900 rounded-xl p-5 shadow-lg space-y-4">
                         <div className="flex items-center gap-2">
                           <Webhook className="w-5 h-5 text-indigo-400" />
-                          <h3 className="text-xs font-bold uppercase text-slate-200 tracking-wider">DevOps Webhook Integration</h3>
+                          <h3 className="text-xs font-bold uppercase text-slate-200 tracking-wider">Integrasi Webhook DevOps</h3>
                         </div>
                         <p className="text-[11px] text-slate-400">
-                          Dispatches automated scan payloads directly to production monitoring channels like Discord, Microsoft Teams, or Slack.
+                          Mengirimkan payload pemindaian otomatis langsung ke saluran pemantauan produksi seperti Discord, Microsoft Teams, atau Slack.
                         </p>
 
                         <div className="space-y-3">
                           <div>
-                            <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-1">Target Platform</label>
+                            <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-1">Platform Target</label>
                             <select
                               value={webhookPlatform}
                               onChange={(e) => setWebhookPlatform(e.target.value)}
                               className="w-full bg-slate-900 border border-slate-800 rounded-md text-xs p-2 focus:outline-none focus:border-indigo-500 text-slate-200"
                             >
                               <option value="Discord">Discord Webhook</option>
-                              <option value="Slack">Slack Integration</option>
+                              <option value="Slack">Integrasi Slack</option>
                               <option value="Microsoft Teams">Microsoft Teams</option>
                             </select>
                           </div>
 
                           <div>
-                            <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-1">Webhook Endpoint URL</label>
+                            <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-1">URL Endpoint Webhook</label>
                             <input
                               type="text"
                               value={webhookUrl}
@@ -1369,7 +1369,7 @@ ${data.security.map((s, idx) => `
                             onClick={triggerWebhook}
                             className="bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold px-4 py-2 rounded-md cursor-pointer transition-colors shadow-md"
                           >
-                            Dispatch Hook Payload
+                            Kirim Payload Webhook
                           </button>
 
                           {webhookStatus && (
@@ -1384,16 +1384,16 @@ ${data.security.map((s, idx) => `
                       <div className="bg-[#0c1220] border border-slate-900 rounded-xl p-5 shadow-lg space-y-4">
                         <div className="flex items-center gap-2">
                           <Sliders className="w-5 h-5 text-indigo-400" />
-                          <h3 className="text-xs font-bold uppercase text-slate-200 tracking-wider">Analysis Threshold Limit</h3>
+                          <h3 className="text-xs font-bold uppercase text-slate-200 tracking-wider">Batas Ambang Analisis</h3>
                         </div>
                         <p className="text-[11px] text-slate-400">
-                          Determine rules to reject pipeline validation inside GitLab CI or GitHub actions.
+                          Tentukan aturan untuk menolak validasi pipeline di dalam GitLab CI atau tindakan GitHub.
                         </p>
 
                         <div className="space-y-4">
                           <div>
                             <div className="flex justify-between text-xs mb-1">
-                              <span className="text-slate-300">Maximum Allowed TODO items:</span>
+                              <span className="text-slate-300">Jumlah item TODO Maksimum yang Diizinkan:</span>
                               <span className="font-bold text-indigo-400 font-mono">{thresholdTodo}</span>
                             </div>
                             <input
@@ -1408,7 +1408,7 @@ ${data.security.map((s, idx) => `
 
                           <div>
                             <div className="flex justify-between text-xs mb-1">
-                              <span className="text-slate-300">Minimum Allowed Health Score:</span>
+                              <span className="text-slate-300">Skor Kesehatan Minimum yang Diizinkan:</span>
                               <span className="font-bold text-emerald-400 font-mono">{thresholdCoverage}%</span>
                             </div>
                             <input
@@ -1505,10 +1505,10 @@ jobs:
             <div className="p-3 border-b border-slate-900 flex items-center justify-between bg-[#0b0f1a]">
               <span className="text-[10px] font-bold text-slate-300 uppercase tracking-widest flex items-center gap-1.5">
                 <MessageSquare className="w-3.5 h-3.5 text-indigo-400" />
-                AI Assistant Engine
+                Mesin Asisten AI
               </span>
               <span className="text-[10px] bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 px-2 py-0.5 rounded-full font-mono font-bold">
-                RAG Context
+                Konteks RAG
               </span>
             </div>
 
@@ -1540,7 +1540,7 @@ jobs:
               <input
                 id="input-ai-chat"
                 type="text"
-                placeholder="Ask AI about this codebase..."
+                placeholder="Tanyakan AI tentang basis kode ini..."
                 value={chatInput}
                 onChange={(e) => setChatInput(e.target.value)}
                 onKeyDown={(e) => {
@@ -1560,9 +1560,9 @@ jobs:
 
             {/* Context File Export Tool Block */}
             <div className="p-4 border-t border-slate-900 bg-[#0d1222] space-y-3">
-              <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Context File Generators</span>
+              <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Pembangkit File Konteks</span>
               <p className="text-[10px] text-slate-400 leading-normal">
-                Export generated documentation bundles designed for consumption by downstream AI Agents.
+                Ekspor bundel dokumentasi yang dihasilkan untuk digunakan oleh Agen AI hilir.
               </p>
 
               <div className="space-y-1.5">
@@ -1616,8 +1616,8 @@ jobs:
               <div className="flex items-center gap-2">
                 <Folder className="w-5 h-5 text-indigo-400" />
                 <div>
-                  <h3 className="text-sm font-bold text-white uppercase tracking-wider">Server Folder Browser</h3>
-                  <p className="text-[10px] text-slate-400">Select any server folder path to scan and inspect code structures.</p>
+                  <h3 className="text-sm font-bold text-white uppercase tracking-wider">Penjelajah Folder Server</h3>
+                  <p className="text-[10px] text-slate-400">Pilih jalur folder server mana saja untuk memindai dan memeriksa struktur kode.</p>
                 </div>
               </div>
               <button 
@@ -1635,7 +1635,7 @@ jobs:
                   type="text"
                   value={customPathInput}
                   onChange={(e) => setCustomPathInput(e.target.value)}
-                  placeholder="Enter custom path manually (e.g. /home/user/my-project)..."
+                  placeholder="Masukkan jalur khusus secara manual (misal: /home/user/my-project)..."
                   className="flex-1 bg-[#090d16] border border-slate-800 rounded-md text-xs px-3 py-2 text-slate-100 focus:outline-none focus:border-indigo-500 font-mono"
                   onKeyDown={(e) => {
                     if (e.key === "Enter") {
@@ -1647,12 +1647,12 @@ jobs:
                   onClick={() => openDirectoryBrowser(customPathInput)}
                   className="bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs px-3 py-2 rounded-md transition-colors"
                 >
-                  Navigate
+                  Navigasi
                 </button>
               </div>
 
               <div className="flex items-center gap-1.5 text-xs text-slate-400 overflow-x-auto whitespace-nowrap custom-scrollbar py-1">
-                <span className="font-semibold text-slate-500 select-none">Current:</span>
+                <span className="font-semibold text-slate-500 select-none">Saat Ini:</span>
                 <span className="font-mono bg-slate-900/80 px-2 py-1 border border-slate-800 text-slate-300 rounded text-[11px]">
                   {browsingPath || "Loading..."}
                 </span>
@@ -1664,12 +1664,12 @@ jobs:
               {browsingLoading ? (
                 <div className="py-12 flex flex-col items-center justify-center gap-3">
                   <div className="w-6 h-6 border-2 border-indigo-500 border-t-transparent animate-spin rounded-full" />
-                  <span className="text-xs text-slate-400 font-mono">Scanning directories...</span>
+                  <span className="text-xs text-slate-400 font-mono">Memindai direktori...</span>
                 </div>
               ) : browseError ? (
                 <div className="p-4 border border-rose-900/30 bg-rose-950/10 text-rose-400 rounded-lg text-xs flex flex-col gap-2">
                   <p className="font-semibold">{browseError}</p>
-                  <p className="text-slate-400 font-sans">Make sure the path is correct and accessible on the server filesystem.</p>
+                  <p className="text-slate-400 font-sans">Pastikan jalur tersebut benar dan dapat diakses pada sistem file server.</p>
                 </div>
               ) : (
                 <div className="space-y-1">
@@ -1682,13 +1682,13 @@ jobs:
                       <ChevronRight className="w-4 h-4 text-slate-500 rotate-180" />
                       <Folder className="w-4 h-4 text-indigo-400/60" />
                       <span className="text-xs font-mono font-bold">..</span>
-                      <span className="text-[10px] text-slate-500">(Parent Directory)</span>
+                      <span className="text-[10px] text-slate-500">(Direktori Induk)</span>
                     </div>
                   )}
 
                   {browsingFolders.length === 0 ? (
                     <div className="text-slate-500 text-center py-12 text-xs">
-                      No subfolders found in this directory.
+                      Tidak ada subfolder yang ditemukan di direktori ini.
                     </div>
                   ) : (
                     browsingFolders.map((folder) => (
@@ -1714,7 +1714,7 @@ jobs:
                           }}
                           className="text-[10px] bg-indigo-600 hover:bg-indigo-500 text-white font-semibold px-2 py-1 rounded transition-colors"
                         >
-                          Scan This
+                          Pindai Ini
                         </button>
                       </div>
                     ))
@@ -1726,14 +1726,14 @@ jobs:
             {/* Modal Actions */}
             <div className="p-4 border-t border-slate-900 bg-[#0d1222] flex justify-between items-center">
               <span className="text-[10px] text-slate-400 font-mono">
-                Click folders to navigate or click "Scan Current" to view stats.
+                Klik folder untuk navigasi atau klik "Pilih & Pindai" untuk melihat statistik.
               </span>
               <div className="flex gap-2">
                 <button
                   onClick={() => setBrowseModalOpen(false)}
                   className="bg-slate-800 hover:bg-slate-700 text-slate-300 font-semibold text-xs px-4 py-2 rounded-md transition-colors cursor-pointer"
                 >
-                  Cancel
+                  Batal
                 </button>
                 <button
                   onClick={() => {
@@ -1743,7 +1743,7 @@ jobs:
                   disabled={!browsingPath || browsingLoading}
                   className="bg-indigo-600 hover:bg-indigo-500 disabled:bg-slate-800 disabled:text-slate-500 text-white font-semibold text-xs px-4 py-2 rounded-md shadow-lg shadow-indigo-600/15 transition-all cursor-pointer"
                 >
-                  Select & Scan Current Folder
+                  Pilih & Pindai Folder Saat Ini
                 </button>
               </div>
             </div>

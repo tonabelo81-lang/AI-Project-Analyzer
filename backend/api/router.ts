@@ -7,7 +7,7 @@ import { DependencyGraph } from "../graph/dependencyGraph";
 import { CodeQualityAnalyzer } from "../quality/codeQualityAnalyzer";
 import { AiContextEngine } from "../context/aiContextEngine";
 import { CodeFileMetadata, SecurityFinding, TodoItem, ScanResult } from "../models";
-import { GoogleGenAI } from "@google/genai";
+import { GoogleGenAI, Type } from "@google/genai";
 import { CONFIG } from "../config";
 
 export const apiRouter = Router();
@@ -463,6 +463,29 @@ apiRouter.get("/trends", (req, res) => {
   res.json(trends);
 });
 
+async function generateContentWithFallback(ai: GoogleGenAI, options: { contents: any[]; systemInstruction?: string; tools?: any[] }) {
+  const models = ["gemini-2.5-flash", "gemini-3.5-flash", "gemini-2.5-pro"];
+  let lastError: any = null;
+  for (const model of models) {
+    try {
+      const response = await ai.models.generateContent({
+        model: model,
+        contents: options.contents,
+        config: {
+          systemInstruction: options.systemInstruction,
+          temperature: 0.2,
+          tools: options.tools,
+        },
+      });
+      return response;
+    } catch (err: any) {
+      console.warn(`Model ${model} failed, trying next fallback...`, err);
+      lastError = err;
+    }
+  }
+  throw lastError || new Error("All models failed to generate content.");
+}
+
 apiRouter.post("/chat", async (req, res) => {
   const { message, chatHistory = [], targetDir } = req.body;
 
@@ -519,11 +542,18 @@ apiRouter.post("/chat", async (req, res) => {
   }
 
   try {
-    const systemPrompt = `You are "AI Project Analyzer", a brilliant full-stack software architect agent that helps developers analyze, debug, and optimize code.
-Here is the structural context of the codebase we are analyzing:
-${summary}
+    const systemPrompt = `Anda adalah "AI Project Analyzer", asisten pengkodean dan pengembangan aplikasi yang cerdas dan berdaya penuh yang dapat bertindak persis seperti AI Coding Agent di ruang kerja aktif.
+Anda memiliki alat baca/tulis langsung untuk memeriksa dan memodifikasi file, membuat daftar direktori, dan menjalankan pemeriksaan kompilasi TypeScript dalam proyek.
 
-Below is the user question or command. Answer accurately, outputting high-quality code blocks if requested. Speak professionally and clearly. Use JetBrains Mono code snippets where applicable. Avoid self-praise or sales pitch. Keep explanations concise.`;
+PENTING: Anda harus selalu merespons dan menjelaskan semua jawaban Anda dalam Bahasa Indonesia yang ramah, profesional, dan mudah dipahami.
+
+Jika pengguna meminta Anda untuk menerapkan perubahan, memperbaiki bug, menambahkan fitur, atau menulis skrip/modul baru, ikuti langkah-langkah berikut:
+1. BACA file terkait yang ada terlebih dahulu untuk memahami konteksnya.
+2. TULIS perubahan yang diperlukan atau file baru.
+3. JALANKAN pemeriksaan kompilasi untuk memastikan tidak ada kesalahan sintaksis atau kompiler.
+4. JELASKAN perubahan dengan jelas kepada pengguna dalam Bahasa Indonesia, dengan mencantumkan file yang Anda modifikasi/buat.
+
+Selalu tulis kode yang lengkap, siap produksi, dan fungsional. Gunakan cuplikan kode JetBrains Mono jika berlaku. Hindari pujian diri atau promosi penjualan. Jaga agar penjelasan tetap ringkas dan sangat profesional.`;
 
     const contents: any[] = [];
     chatHistory.forEach((h: any) => {
@@ -538,34 +568,165 @@ Below is the user question or command. Answer accurately, outputting high-qualit
       parts: [{ text: message }]
     });
 
-    try {
-      const response = await ai.models.generateContent({
-        model: "gemini-3.5-flash",
-        contents,
-        config: {
-          systemInstruction: systemPrompt,
-          temperature: 0.2,
-        },
-      });
-      return res.json({ reply: response.text });
-    } catch (primaryErr) {
-      console.warn("Primary model failed, attempting gemini-2.5-flash fallback...", primaryErr);
-      try {
-        const response = await ai.models.generateContent({
-          model: "gemini-2.5-flash",
-          contents,
-          config: {
-            systemInstruction: systemPrompt,
-            temperature: 0.2,
+    const fileListTool = {
+      name: "list_directory",
+      description: "Lists all files and subdirectories in a directory path relative to the workspace root.",
+      parameters: {
+        type: Type.OBJECT,
+        properties: {
+          dirPath: {
+            type: Type.STRING,
+            description: "The directory path relative to the workspace root (e.g., 'src/components').",
           },
-        });
-        return res.json({ reply: response.text });
-      } catch (fallbackErr) {
-        const fallbackReply = localArchitectureSolver(message, analyzedFiles);
-        return res.json({ reply: fallbackReply });
+        },
+        required: ["dirPath"],
+      },
+    };
+
+    const readFileTool = {
+      name: "read_file",
+      description: "Reads the content of a file in the project workspace. Use this to inspect the source code of files so you can understand them or debug them.",
+      parameters: {
+        type: Type.OBJECT,
+        properties: {
+          filePath: {
+            type: Type.STRING,
+            description: "The relative path of the file from the workspace root (e.g., 'src/components/Button.tsx').",
+          },
+        },
+        required: ["filePath"],
+      },
+    };
+
+    const writeFileTool = {
+      name: "write_file",
+      description: "Writes or overwrites the content of a file in the project workspace. Use this to create new components, edit existing files, fix bugs, or add features.",
+      parameters: {
+        type: Type.OBJECT,
+        properties: {
+          filePath: {
+            type: Type.STRING,
+            description: "The relative path of the file to write (e.g., 'src/components/NewButton.tsx').",
+          },
+          content: {
+            type: Type.STRING,
+            description: "The complete new content of the file.",
+          },
+        },
+        required: ["filePath", "content"],
+      },
+    };
+
+    const buildCheckTool = {
+      name: "run_build_check",
+      description: "Runs a diagnostic compilation check on the project to verify that the project builds successfully and has no TypeScript or syntax errors.",
+      parameters: {
+        type: Type.OBJECT,
+        properties: {},
+      },
+    };
+
+    let currentResponse: any = null;
+    let loopCount = 0;
+    const maxLoops = 6;
+
+    while (loopCount < maxLoops) {
+      currentResponse = await generateContentWithFallback(ai, {
+        contents,
+        systemInstruction: systemPrompt,
+        tools: [
+          {
+            functionDeclarations: [fileListTool, readFileTool, writeFileTool, buildCheckTool],
+          },
+        ],
+      });
+
+      const functionCalls = currentResponse.functionCalls;
+      if (!functionCalls || functionCalls.length === 0) {
+        break; // No more tool calls, finish the response
       }
+
+      // Append model's turn with tool calls to conversation history
+      const modelTurnParts = functionCalls.map((fc: any) => ({
+        functionCall: {
+          name: fc.name,
+          args: fc.args,
+        }
+      }));
+
+      contents.push({
+        role: "model",
+        parts: modelTurnParts
+      });
+
+      // Execute each function call and construct the tool responses
+      const toolResponsesParts: any[] = [];
+      for (const call of functionCalls) {
+        let result: any = {};
+        try {
+          if (call.name === "read_file") {
+            const { filePath } = call.args as { filePath: string };
+            const fullPath = path.resolve(rootPath, filePath);
+            if (fs.existsSync(fullPath)) {
+              const fileContent = fs.readFileSync(fullPath, "utf-8");
+              result = { success: true, filePath, content: fileContent };
+            } else {
+              result = { success: false, error: `File not found at: ${filePath}` };
+            }
+          } else if (call.name === "write_file") {
+            const { filePath, content } = call.args as { filePath: string; content: string };
+            const fullPath = path.resolve(rootPath, filePath);
+            // Ensure directory exists
+            fs.mkdirSync(path.dirname(fullPath), { recursive: true });
+            fs.writeFileSync(fullPath, content, "utf-8");
+            result = { success: true, filePath, message: `Successfully wrote ${content.length} characters to file.` };
+          } else if (call.name === "list_directory") {
+            const { dirPath } = call.args as { dirPath: string };
+            const fullPath = path.resolve(rootPath, dirPath || ".");
+            if (fs.existsSync(fullPath) && fs.statSync(fullPath).isDirectory()) {
+              const entries = fs.readdirSync(fullPath, { withFileTypes: true });
+              const files = entries.map(e => ({
+                name: e.name,
+                isDirectory: e.isDirectory(),
+                path: path.join(dirPath || "", e.name)
+              }));
+              result = { success: true, dirPath, files };
+            } else {
+              result = { success: false, error: `Directory not found or is not a directory: ${dirPath}` };
+            }
+          } else if (call.name === "run_build_check") {
+            try {
+              const { execSync } = require("child_process");
+              execSync("npx tsc --noEmit", { stdio: "pipe", cwd: rootPath });
+              result = { success: true, output: "TypeScript compile checks passed successfully." };
+            } catch (err: any) {
+              result = { success: false, error: err.stdout?.toString() || err.stderr?.toString() || err.message };
+            }
+          }
+        } catch (err: any) {
+          result = { success: false, error: err.message };
+        }
+
+        toolResponsesParts.push({
+          functionResponse: {
+            name: call.name,
+            response: result
+          }
+        });
+      }
+
+      // Append tool responses turn to the conversation history
+      contents.push({
+        role: "tool",
+        parts: toolResponsesParts
+      });
+
+      loopCount++;
     }
+
+    return res.json({ reply: currentResponse.text });
   } catch (err) {
+    console.error("Agentic chat loop failed:", err);
     const fallbackReply = localArchitectureSolver(message, analyzedFiles);
     res.json({ reply: fallbackReply });
   }

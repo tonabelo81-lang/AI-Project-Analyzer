@@ -125,9 +125,15 @@ export default function App() {
   const [panStart, setPanStart] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
 
   // Model provider states
-  const [modelProvider, setModelProvider] = useState<"cloud_gemini" | "local_ollama" | "local_ast">("cloud_gemini");
-  const [ollamaModel, setOllamaModel] = useState<string>("llama3");
-  const [ollamaUrl, setOllamaUrl] = useState<string>("http://localhost:11434");
+  const [modelProvider, setModelProvider] = useState<"cloud_gemini" | "local_ollama" | "local_ast">(
+    () => (localStorage.getItem("ai_model_provider") as any) || "cloud_gemini"
+  );
+  const [ollamaModel, setOllamaModel] = useState<string>(
+    () => localStorage.getItem("ai_ollama_model") || "llama3"
+  );
+  const [ollamaUrl, setOllamaUrl] = useState<string>(
+    () => localStorage.getItem("ai_ollama_url") || "http://localhost:11434"
+  );
   const [localOllamaModels, setLocalOllamaModels] = useState<string[]>([]);
   const [fetchingOllama, setFetchingOllama] = useState<boolean>(false);
   const [ollamaError, setOllamaError] = useState<string | null>(null);
@@ -172,7 +178,16 @@ export default function App() {
     if (modelProvider === "local_ollama") {
       fetchLocalOllamaModels();
     }
+    localStorage.setItem("ai_model_provider", modelProvider);
   }, [modelProvider]);
+
+  useEffect(() => {
+    localStorage.setItem("ai_ollama_model", ollamaModel);
+  }, [ollamaModel]);
+
+  useEffect(() => {
+    localStorage.setItem("ai_ollama_url", ollamaUrl);
+  }, [ollamaUrl]);
 
   useEffect(() => {
     fetchScanData();
@@ -287,6 +302,81 @@ export default function App() {
     setChatInput("");
     setChatMessages(prev => [...prev, { role: "user", content: userMsg }]);
     setChatLoading(true);
+
+    if (modelProvider === "local_ollama") {
+      try {
+        const filesToUse = data?.files || [];
+        const summary = filesToUse.map(f => {
+          const classNames = f.classes || [];
+          const functionNames = f.functions || [];
+          return `- Path: ${f.path}\n  Symbols: Classes: [${classNames.join(", ")}], Functions: [${functionNames.join(", ")}]\n  Lines: ${f.loc}, Complexity: ${f.complexity || 0}, Security: ${f.securityIssues?.length || 0} issues.`;
+        }).slice(0, 40).join("\n");
+
+        const systemPrompt = language === "en"
+          ? `You are "AI Project Analyzer", a smart, full-powered coding and application development assistant.
+You have analyzed the current codebase of the project. Here is the metadata summary of the project modules:
+${summary}
+
+IMPORTANT: Always respond in professional, friendly, and easy-to-understand English. Be precise, concise, and complete.`
+          : `Anda adalah "AI Project Analyzer", asisten pengkodean dan pengembangan aplikasi yang cerdas dan berdaya penuh.
+Anda telah menganalisis basis kode proyek saat ini. Berikut adalah ringkasan metadata modul proyek:
+${summary}
+
+PENTING: Selalu berikan respons dalam Bahasa Indonesia yang ramah, profesional, dan mudah dipahami. Jaga agar penjelasan tetap ringkas dan sangat profesional.`;
+
+        const cleanUrl = ollamaUrl.replace(/\/$/, "");
+        const messages = [
+          { role: "system", content: systemPrompt },
+          ...chatMessages.map(h => ({
+            role: h.role === "user" ? "user" : "assistant",
+            content: h.content
+          })),
+          { role: "user", content: userMsg }
+        ];
+
+        const response = await fetch(`${cleanUrl}/api/chat`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            model: ollamaModel,
+            messages: messages,
+            stream: false
+          })
+        });
+
+        if (!response.ok) {
+          throw new Error(`Ollama HTTP Error: ${response.status}`);
+        }
+
+        const resJson = await response.json();
+        const reply = resJson.message?.content || "No response content from Ollama.";
+        setChatMessages(prev => [...prev, { role: "ai", content: reply }]);
+      } catch (err: any) {
+        console.warn("Direct client call to Ollama failed, trying server-side proxy...", err);
+        try {
+          const res = await fetch("/api/chat", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              message: userMsg,
+              chatHistory: chatMessages.map(m => ({ role: m.role, content: m.content })),
+              targetDir: scanDir,
+              language: language,
+              modelProvider: modelProvider,
+              ollamaModel: ollamaModel,
+              ollamaUrl: ollamaUrl,
+            }),
+          });
+          const json = await res.json();
+          setChatMessages(prev => [...prev, { role: "ai", content: json.reply || json.error }]);
+        } catch (serverErr) {
+          setChatMessages(prev => [...prev, { role: "ai", content: "Error communicating with local Ollama. Please check if Ollama is running and CORS is enabled." }]);
+        }
+      } finally {
+        setChatLoading(false);
+      }
+      return;
+    }
 
     try {
       const res = await fetch("/api/chat", {

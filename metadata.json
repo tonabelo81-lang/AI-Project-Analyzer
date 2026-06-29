@@ -1,0 +1,6 @@
+{
+  "name": "AI Project Analyzer",
+  "description": "An enterprise-grade source code analysis suite that generates deep architecture summaries, dependency graphs, security reviews, and developer context files for AI Coding Agents.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
